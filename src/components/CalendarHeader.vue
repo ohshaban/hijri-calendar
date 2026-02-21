@@ -1,5 +1,5 @@
 <script setup>
-import { getMonthName, getAllMonths } from '../utils/hijri.js'
+import { getMonthName, getAllMonths, toArabicNumerals } from '../utils/hijri.js'
 import { useLang } from '../utils/i18n.js'
 
 const props = defineProps({
@@ -55,7 +55,7 @@ const years = Array.from({ length: 21 }, (_, i) => 1440 + i)
             :value="y"
             class="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"
           >
-            {{ y }}
+            {{ lang === 'ar' ? toArabicNumerals(y) : y }}
           </option>
         </select>
       </div>

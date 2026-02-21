@@ -1,5 +1,11 @@
 import uq from '@umalqura/core'
 
+// Convert Western numerals to Arabic-Indic numerals (٠١٢٣٤٥٦٧٨٩)
+export function toArabicNumerals(num) {
+  const arabicDigits = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩']
+  return String(num).replace(/[0-9]/g, d => arabicDigits[d])
+}
+
 // Get Hijri date from a JS Date object
 export function toHijri(date) {
   const d = uq(date)
@@ -40,7 +46,7 @@ export function todayHijri() {
 export function formatHijriDate(year, month, day, lang = 'en') {
   const monthName = getMonthName(month, lang)
   if (lang === 'ar') {
-    return `${day} ${monthName} ${year} هـ`
+    return `${toArabicNumerals(day)} ${monthName} ${toArabicNumerals(year)} هـ`
   }
   return `${day} ${monthName} ${year} AH`
 }

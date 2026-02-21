@@ -1,9 +1,15 @@
 <script setup>
+import { toArabicNumerals } from '../utils/hijri.js'
+
 const props = defineProps({
   day: Object,
   lang: String,
   reminders: Array,
 })
+
+function displayDay(num) {
+  return props.lang === 'ar' ? toArabicNumerals(num) : num
+}
 </script>
 
 <template>
@@ -24,7 +30,7 @@ const props = defineProps({
             'text-slate-700 dark:text-slate-200': !day.isToday,
           }"
         >
-          {{ day.day }}
+          {{ displayDay(day.day) }}
         </span>
         <!-- Gregorian small date -->
         <span class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1">

@@ -78,12 +78,14 @@ watch(() => auth.isAuthenticated.value, (val) => {
           <span class="text-2xl">🌙</span>
           <h1 class="text-lg font-semibold text-teal-700 dark:text-teal-400">{{ t('appName') }}</h1>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1 sm:gap-2">
           <button
             @click="toggleLang"
-            class="px-3 py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium"
+            class="p-2 sm:px-3 sm:py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium"
+            :title="t('language')"
           >
-            {{ lang === 'en' ? 'عربي' : 'EN' }}
+            <span class="sm:hidden">{{ lang === 'en' ? 'ع' : 'A' }}</span>
+            <span class="hidden sm:inline">{{ lang === 'en' ? 'عربي' : 'EN' }}</span>
           </button>
           <button
             @click="toggleDark"
@@ -95,23 +97,35 @@ watch(() => auth.isAuthenticated.value, (val) => {
           </button>
           <button
             @click="onShowReminders"
-            class="px-3 py-1.5 text-sm rounded-lg bg-teal-600 text-white hover:bg-teal-700 font-medium"
+            class="p-2 sm:px-3 sm:py-1.5 text-sm rounded-lg bg-teal-600 text-white hover:bg-teal-700 font-medium"
+            :title="t('myReminders')"
           >
-            {{ t('myReminders') }}
+            <svg class="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <span class="hidden sm:inline">{{ t('myReminders') }}</span>
           </button>
           <button
             v-if="!auth.isAuthenticated.value"
             @click="showAuthModal = true"
-            class="px-3 py-1.5 text-sm rounded-lg border border-teal-600 text-teal-600 dark:text-teal-400 dark:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 font-medium"
+            class="p-2 sm:px-3 sm:py-1.5 text-sm rounded-lg border border-teal-600 text-teal-600 dark:text-teal-400 dark:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 font-medium"
+            :title="t('signIn')"
           >
-            {{ t('signIn') }}
+            <svg class="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+            </svg>
+            <span class="hidden sm:inline">{{ t('signIn') }}</span>
           </button>
           <button
             v-else
             @click="onSignOut"
-            class="px-3 py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
+            class="p-2 sm:px-3 sm:py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
+            :title="t('signOut')"
           >
-            {{ t('signOut') }}
+            <svg class="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span class="hidden sm:inline">{{ t('signOut') }}</span>
           </button>
         </div>
       </div>

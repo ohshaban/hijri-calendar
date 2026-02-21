@@ -38,6 +38,14 @@ export function useCalendar() {
       })
     }
 
+    // Fill trailing empty cells to complete the last row
+    const remainder = days.length % 7
+    if (remainder > 0) {
+      for (let i = 0; i < 7 - remainder; i++) {
+        days.push({ empty: true })
+      }
+    }
+
     return days
   })
 
