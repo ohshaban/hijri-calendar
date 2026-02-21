@@ -1,7 +1,8 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM_EMAIL = 'Hilal Calendar <noreply@hilalshaban.com>'
+// Use Resend's test sender until a custom domain is verified
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Hilal Calendar <onboarding@resend.dev>'
 
 export async function sendOtpEmail(to, code) {
   const { error } = await resend.emails.send({
