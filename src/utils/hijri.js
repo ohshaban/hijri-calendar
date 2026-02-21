@@ -22,7 +22,7 @@ export function toGregorian(year, month, day) {
 // Get number of days in a Hijri month
 export function daysInMonth(year, month) {
   const d = uq(year, month, 1)
-  return d.monthLength
+  return d.daysInMonth
 }
 
 // Get day of week for first day of Hijri month (0=Sun, 6=Sat)
