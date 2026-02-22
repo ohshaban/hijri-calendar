@@ -37,9 +37,7 @@
 ### Gaps to address
 
 #### P0 - Must fix
-1. **Resend domain verification**: Emails currently only go to developer.ohs@gmail.com.
-   The `from` address is set to `noreply@hilalshaban.com` but Resend needs the domain
-   DNS records verified (DKIM, SPF, DMARC). Check Resend dashboard for verification status.
+1. ~~**Resend domain verification**~~: Fixed - domain verified, emails now send to any recipient.
 
 2. ~~**Mobile header overflow**~~: Fixed - uses icon-only buttons on mobile, text on desktop.
 
