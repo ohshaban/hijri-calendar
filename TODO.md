@@ -59,21 +59,16 @@
 8. ~~**Empty month padding**~~: Fixed - trailing empty cells fill the last row.
 
 #### P2 - Nice to have
-9. **Responsive calendar cells**: On very small screens, cells could show only the
-   Hijri day number and hide the Gregorian date / Islamic event label.
+9. ~~**Responsive calendar cells**~~: Fixed - hides Gregorian date and Islamic event labels below 480px (`xs` breakpoint), compact cell height on very small screens.
 
 10. ~~**Year range validation**~~: Fixed - expanded from 1440-1460 to 1400-1500 AH.
 
-11. **Animated month transitions**: No animation when switching months. A slide
-    transition would feel more polished.
+11. ~~**Animated month transitions**~~: Fixed - slide transition when navigating months, with RTL support.
 
-12. **PWA support**: Add a manifest.json and service worker for installability and
-    offline calendar viewing (without reminder features).
+12. ~~**PWA support**~~: Fixed - web app manifest, service worker with network-first caching, Apple meta tags, installable on mobile.
 
-13. **Timezone handling**: Reminder `remind_at` timestamps use the browser's local
-    time but the server compares against server time. If user and server are in
-    different timezones, reminders fire at wrong time. Should store and compare in UTC.
+13. ~~**Timezone handling**~~: Fixed - recurring events store the user's IANA timezone and use it to compute correct UTC timestamps for generated reminders.
 
-14. **Reminder edit**: Can only create and delete, not edit existing reminders.
+14. ~~**Reminder edit**~~: Fixed - inline edit form in reminder list with PUT endpoint, can update title, description, and time.
 
 15. ~~**Confirmation dialog for delete**~~: Fixed - confirm() prompt before deleting reminders and recurring events.

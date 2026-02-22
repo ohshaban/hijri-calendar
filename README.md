@@ -41,7 +41,13 @@ A Hijri (Islamic) calendar web application with email reminders. Users can brows
 - Passwordless email authentication (OTP-based)
 - One-time email reminders for specific Hijri dates
 - Recurring annual reminders for anniversaries (e.g. wedding on 15 Sha'ban 1440 -- get reminded every year)
+- Reminder editing (update title, description, and time for unsent reminders)
 - Automatic Hijri-to-Gregorian date conversion via the Umm al-Qura calendar
+- Timezone-aware recurring reminders (stores user's IANA timezone)
+- Responsive design with compact view on small screens (< 480px)
+- Animated slide transitions between months (with RTL support)
+- PWA support: installable on mobile, offline calendar viewing
+- Keyboard navigation: arrow keys to navigate days, Enter to create a reminder
 
 ---
 
@@ -66,11 +72,16 @@ A Hijri (Islamic) calendar web application with email reminders. Users can brows
 
 ```
 calendar/
-├── index.html                  # HTML entry point
+├── index.html                  # HTML entry point (includes PWA manifest link)
 ├── package.json                # Dependencies and scripts
 ├── vite.config.js              # Vite config (Vue plugin, Tailwind, dev proxy)
 ├── .env                        # Environment variables (not committed)
 ├── .env.example                # Template for .env
+│
+├── public/                     # Static assets (copied to dist as-is)
+│   ├── manifest.webmanifest    # PWA web app manifest
+│   ├── sw.js                   # Service worker for offline support
+│   └── icons/                  # PWA icons (SVG)
 │
 ├── server/                     # Backend (Node.js, runs on port 3002)
 │   ├── index.js                # Hono app setup, middleware, route mounting
@@ -88,7 +99,7 @@ calendar/
 │       └── hilal.db            # SQLite database file (auto-created, not committed)
 │
 ├── src/                        # Frontend (Vue 3 SPA)
-│   ├── main.js                 # App bootstrap (language, dark mode restore)
+│   ├── main.js                 # App bootstrap (language, dark mode restore, SW registration)
 │   ├── App.vue                 # Root component (layout, modals, state wiring)
 │   ├── style.css               # Tailwind imports + custom base styles
 │   ├── components/
@@ -98,11 +109,13 @@ calendar/
 │   │   ├── TodayInfo.vue       # "Today is X Hijri" banner
 │   │   ├── AuthModal.vue       # Email + OTP sign-in flow
 │   │   ├── ReminderModal.vue   # Create reminder form (one-time or recurring)
-│   │   └── ReminderList.vue    # View all reminders + recurring events
+│   │   ├── ReminderList.vue    # View all reminders + recurring events (with inline editing)
+│   │   └── ToastContainer.vue  # Global toast notifications
 │   ├── composables/
 │   │   ├── useCalendar.js      # Calendar state: current month/year, day generation
 │   │   ├── useAuth.js          # Auth state: login, logout, session check
-│   │   └── useReminders.js     # Reminders + recurring events state and API calls
+│   │   ├── useReminders.js     # Reminders + recurring events state and API calls
+│   │   └── useToast.js         # Global toast notification state
 │   └── utils/
 │       ├── hijri.js            # Hijri date helpers (toHijri, toGregorian, daysInMonth, formatting)
 │       ├── islamicDates.js     # Notable Islamic dates lookup table
@@ -340,6 +353,7 @@ The SQLite database is stored at `server/data/hilal.db` and is auto-created on f
 | hijri_day | INTEGER | 1-30 |
 | origin_year | INTEGER | The Hijri year of the original event (informational) |
 | remind_time | TEXT | Time of day to remind, e.g. `09:00` |
+| timezone | TEXT | User's IANA timezone, e.g. `America/New_York` (default: `UTC`) |
 | active | INTEGER | 1 = active, 0 = deactivated |
 | created_at | INTEGER | Unix timestamp |
 
@@ -364,6 +378,7 @@ All API routes are prefixed with `/api`. Authenticated routes require a `Authori
 |--------|------|------|-------------|
 | GET | `/api/reminders` | Yes | List user's reminders (non-cancelled) |
 | POST | `/api/reminders` | Yes | Create a reminder. Body: `{ "title", "description", "hijriDate", "gregorianDate", "remindAt" }` |
+| PUT | `/api/reminders/:id` | Yes | Update a reminder. Body: `{ "title", "description", "remindAt" }` (all optional) |
 | DELETE | `/api/reminders/:id` | Yes | Cancel a reminder (soft delete) |
 
 ### Recurring Events
@@ -371,7 +386,7 @@ All API routes are prefixed with `/api`. Authenticated routes require a `Authori
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/recurring` | Yes | List user's active recurring events |
-| POST | `/api/recurring` | Yes | Create a recurring event. Body: `{ "title", "description", "hijriMonth", "hijriDay", "originYear", "remindTime" }` |
+| POST | `/api/recurring` | Yes | Create a recurring event. Body: `{ "title", "description", "hijriMonth", "hijriDay", "originYear", "remindTime", "timezone" }` |
 | DELETE | `/api/recurring/:id` | Yes | Deactivate event + cancel all unsent reminder instances |
 
 ### Utility
