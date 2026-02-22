@@ -26,6 +26,8 @@
 - [x] Caddy config with API proxy + SPA fallback
 - [x] pm2 process management
 - [x] Git + GitHub
+- [x] Recurring annual reminders (recurring_events table, scheduler, frontend toggle)
+- [x] Comprehensive README.md
 
 ### Improvements over plan
 - Used Hono instead of Express (faster, smaller, better for Node 20)
@@ -39,38 +41,28 @@
    The `from` address is set to `noreply@hilalshaban.com` but Resend needs the domain
    DNS records verified (DKIM, SPF, DMARC). Check Resend dashboard for verification status.
 
-2. **Mobile header overflow**: The top bar has 5 buttons that will likely wrap badly on
-   small screens (<375px). Need to collapse into a hamburger menu or use icon-only
-   buttons on mobile.
+2. ~~**Mobile header overflow**~~: Fixed - uses icon-only buttons on mobile, text on desktop.
 
-3. **Arabic numerals in AR mode**: Plan specifies "Arabic numerals" (١٢٣) but currently
-   showing Western numerals (123) even in Arabic mode. Need to use
-   `toLocaleString('ar-EG')` for day numbers when lang=ar.
+3. ~~**Arabic numerals in AR mode**~~: Fixed - `toArabicNumerals()` used for day numbers.
 
 #### P1 - Should fix
 4. **SPA client-side routing**: Currently no Vue Router. Direct URL access to paths
    other than / will 404 then fallback via try_files. Not a problem now since it's a
    single-page app, but could matter if we add routes.
 
-5. **Error toast/notification system**: Errors currently show inline in modals. A
-   global toast system would be better UX for transient messages like "Reminder created"
-   or "Reminder cancelled".
+5. ~~**Error toast/notification system**~~: Fixed - global ToastContainer with useToast composable.
 
-6. **Loading skeleton**: Calendar grid shows nothing while composable initializes.
-   Add a skeleton/shimmer state for better perceived performance.
+6. ~~**Loading skeleton**~~: Not needed - calendar data is computed synchronously, no loading state.
 
-7. **Keyboard navigation**: Calendar grid isn't keyboard-navigable. Arrow keys should
-   move between days, Enter should open reminder modal.
+7. ~~**Keyboard navigation**~~: Fixed - arrow keys navigate days, Enter opens reminder modal, focus ring on selected day.
 
-8. **Empty month padding**: Calendar grid shows empty cells before month start but not
-   after month end. Should fill remaining cells in the last row for visual consistency.
+8. ~~**Empty month padding**~~: Fixed - trailing empty cells fill the last row.
 
 #### P2 - Nice to have
 9. **Responsive calendar cells**: On very small screens, cells could show only the
    Hijri day number and hide the Gregorian date / Islamic event label.
 
-10. **Year range validation**: Dropdowns go 1440-1460. `@umalqura/core` supports
-    1356-1500 AH. Could expand range.
+10. ~~**Year range validation**~~: Fixed - expanded from 1440-1460 to 1400-1500 AH.
 
 11. **Animated month transitions**: No animation when switching months. A slide
     transition would feel more polished.
@@ -84,5 +76,4 @@
 
 14. **Reminder edit**: Can only create and delete, not edit existing reminders.
 
-15. **Confirmation dialog for delete**: Currently deletes immediately on button click.
-    Should confirm first.
+15. ~~**Confirmation dialog for delete**~~: Fixed - confirm() prompt before deleting reminders and recurring events.

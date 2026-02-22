@@ -2,10 +2,12 @@
 import { computed } from 'vue'
 import { useLang } from '../utils/i18n.js'
 import { getMonthName } from '../utils/hijri.js'
+import { useToast } from '../composables/useToast.js'
 
 const props = defineProps({ reminderState: Object, lang: String })
 const emit = defineEmits(['close'])
 const { t } = useLang()
+const toast = useToast()
 
 const sortedReminders = computed(() => {
   return [...props.reminderState.reminders.value].sort((a, b) => a.remind_at - b.remind_at)
@@ -27,11 +29,15 @@ function formatHijriMonthDay(month, day) {
 }
 
 async function handleDelete(id) {
-  await props.reminderState.removeReminder(id)
+  if (!confirm(t('confirmDelete'))) return
+  const ok = await props.reminderState.removeReminder(id)
+  if (ok) toast.success(t('reminderDeleted'))
 }
 
 async function handleDeleteRecurring(id) {
-  await props.reminderState.removeRecurringEvent(id)
+  if (!confirm(t('confirmDelete'))) return
+  const ok = await props.reminderState.removeRecurringEvent(id)
+  if (ok) toast.success(t('reminderDeleted'))
 }
 </script>
 

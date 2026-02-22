@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { formatHijriDate, toGregorian, getMonthName } from '../utils/hijri.js'
 import { useLang } from '../utils/i18n.js'
+import { useToast } from '../composables/useToast.js'
 
 const props = defineProps({
   day: Object,
@@ -13,12 +14,12 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 const { t } = useLang()
+const toast = useToast()
 
 const title = ref('')
 const description = ref('')
 const remindTime = ref('09:00')
 const isRecurring = ref(false)
-const success = ref(false)
 
 const hijriDateStr = `${props.year}-${String(props.month).padStart(2, '0')}-${String(props.day.day).padStart(2, '0')}`
 const gregDate = toGregorian(props.year, props.month, props.day.day)
@@ -38,8 +39,10 @@ async function handleSave() {
     })
 
     if (ok) {
-      success.value = true
-      setTimeout(() => emit('close'), 1500)
+      toast.success(t('reminderCreated'))
+      emit('close')
+    } else {
+      toast.error(props.reminderState.error.value)
     }
   } else {
     const remindAt = new Date(`${gregDateStr}T${remindTime.value}:00`)
@@ -53,8 +56,10 @@ async function handleSave() {
     })
 
     if (ok) {
-      success.value = true
-      setTimeout(() => emit('close'), 1500)
+      toast.success(t('reminderCreated'))
+      emit('close')
+    } else {
+      toast.error(props.reminderState.error.value)
     }
   }
 }
@@ -72,13 +77,7 @@ async function handleSave() {
         </button>
       </div>
 
-      <!-- Success message -->
-      <div v-if="success" class="text-center py-8">
-        <div class="text-4xl mb-3">✅</div>
-        <p class="font-medium text-teal-600 dark:text-teal-400">{{ t('reminderCreated') }}</p>
-      </div>
-
-      <div v-else>
+      <div>
         <!-- Date display -->
         <div class="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-3 mb-4">
           <p class="font-medium text-teal-700 dark:text-teal-400">

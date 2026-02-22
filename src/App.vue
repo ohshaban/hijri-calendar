@@ -10,6 +10,7 @@ import TodayInfo from './components/TodayInfo.vue'
 import AuthModal from './components/AuthModal.vue'
 import ReminderModal from './components/ReminderModal.vue'
 import ReminderList from './components/ReminderList.vue'
+import ToastContainer from './components/ToastContainer.vue'
 
 const { lang, setLang, t } = useLang()
 const calendar = useCalendar()
@@ -181,5 +182,7 @@ watch(() => auth.isAuthenticated.value, (val) => {
       :lang="lang"
       @close="showReminderList = false"
     />
+
+    <ToastContainer />
   </div>
 </template>

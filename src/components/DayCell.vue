@@ -5,6 +5,7 @@ const props = defineProps({
   day: Object,
   lang: String,
   reminders: Array,
+  focused: { type: Boolean, default: false },
 })
 
 function displayDay(num) {
@@ -18,6 +19,7 @@ function displayDay(num) {
     :class="{
       'cursor-pointer hover:bg-teal-50/50 dark:hover:bg-teal-900/20': !day.empty,
       'bg-slate-50/50 dark:bg-slate-800/50': day.empty,
+      'ring-2 ring-inset ring-teal-500': focused,
     }"
   >
     <template v-if="!day.empty">
