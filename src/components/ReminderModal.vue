@@ -36,6 +36,7 @@ async function handleSave() {
       hijriDay: props.day.day,
       originYear: props.year,
       remindTime: remindTime.value,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     })
 
     if (ok) {

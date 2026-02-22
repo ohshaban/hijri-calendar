@@ -67,11 +67,13 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_recurring_email ON recurring_events(email);
 `)
 
-// Safe migration: add recurring_event_id column if it doesn't exist
+// Safe migrations
 try {
   db.exec(`ALTER TABLE reminders ADD COLUMN recurring_event_id TEXT DEFAULT NULL`)
-} catch (e) {
-  // Column already exists, ignore
-}
+} catch (e) { /* Column already exists */ }
+
+try {
+  db.exec(`ALTER TABLE recurring_events ADD COLUMN timezone TEXT DEFAULT 'UTC'`)
+} catch (e) { /* Column already exists */ }
 
 export default db

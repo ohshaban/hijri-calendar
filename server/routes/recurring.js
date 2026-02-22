@@ -20,7 +20,7 @@ recurring.get('/', (c) => {
 // POST /api/recurring
 recurring.post('/', async (c) => {
   const email = c.get('email')
-  const { title, description, hijriMonth, hijriDay, originYear, remindTime } = await c.req.json()
+  const { title, description, hijriMonth, hijriDay, originYear, remindTime, timezone } = await c.req.json()
 
   if (!title || !hijriMonth || !hijriDay || !originYear) {
     return c.json({ error: 'title, hijriMonth, hijriDay, and originYear are required' }, 400)
@@ -38,9 +38,9 @@ recurring.post('/', async (c) => {
   const now = Math.floor(Date.now() / 1000)
 
   db.prepare(
-    `INSERT INTO recurring_events (id, email, title, description, hijri_month, hijri_day, origin_year, remind_time, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-  ).run(id, email, title, description || '', hijriMonth, hijriDay, originYear, remindTime || '09:00', now)
+    `INSERT INTO recurring_events (id, email, title, description, hijri_month, hijri_day, origin_year, remind_time, timezone, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(id, email, title, description || '', hijriMonth, hijriDay, originYear, remindTime || '09:00', timezone || 'UTC', now)
 
   const event = db.prepare('SELECT * FROM recurring_events WHERE id = ?').get(id)
 

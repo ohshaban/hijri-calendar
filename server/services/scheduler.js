@@ -18,6 +18,46 @@ function clampDay(year, month, day, uqFn) {
   return Math.min(day, maxDay)
 }
 
+// Create a UTC timestamp for a given date/time in a specific timezone
+function dateInTimezone(gregDate, hours, minutes, timezone) {
+  // Build an ISO string for the date at the given time
+  const y = gregDate.getFullYear()
+  const m = String(gregDate.getMonth() + 1).padStart(2, '0')
+  const d = String(gregDate.getDate()).padStart(2, '0')
+  const dateStr = `${y}-${m}-${d}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`
+
+  try {
+    // Use Intl to find the UTC offset for this timezone at this date/time
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+    })
+
+    // Create a date assuming UTC, then adjust by the timezone offset
+    const utcDate = new Date(`${dateStr}Z`)
+    const parts = formatter.formatToParts(utcDate)
+    const getPart = (type) => parseInt(parts.find(p => p.type === type)?.value || '0')
+
+    // The formatted time in the target timezone tells us what time it is there when it's dateStr in UTC
+    // We need the reverse: what UTC time corresponds to dateStr in the target timezone
+    // offset = localTime - utcTime => utcTime = localTime - offset
+    const localInTz = new Date(
+      getPart('year'), getPart('month') - 1, getPart('day'),
+      getPart('hour'), getPart('minute'), getPart('second')
+    )
+    const offsetMs = localInTz.getTime() - utcDate.getTime()
+    // The actual UTC time for the desired local time is: desired - offset
+    const targetUtc = new Date(`${dateStr}Z`)
+    targetUtc.setTime(targetUtc.getTime() - offsetMs)
+    return targetUtc
+  } catch {
+    // Invalid timezone — fall back to treating time as UTC
+    return new Date(`${dateStr}Z`)
+  }
+}
+
 function findNextOccurrenceYear(hijriMonth, hijriDay, uqFn) {
   const today = uqFn(new Date())
   const currentYear = today.hy
@@ -50,8 +90,7 @@ export function generateReminderForEvent(event) {
       const gregDateStr = gregDate.toISOString().split('T')[0]
 
       const [hours, minutes] = (event.remind_time || '09:00').split(':').map(Number)
-      const remindDate = new Date(gregDate)
-      remindDate.setHours(hours, minutes, 0, 0)
+      const remindDate = dateInTimezone(gregDate, hours, minutes, event.timezone || 'UTC')
       const remindAtTs = Math.floor(remindDate.getTime() / 1000)
 
       const id = randomUUID()
@@ -90,8 +129,7 @@ async function generateRecurringReminders() {
       const gregDateStr = gregDate.toISOString().split('T')[0]
 
       const [hours, minutes] = (event.remind_time || '09:00').split(':').map(Number)
-      const remindDate = new Date(gregDate)
-      remindDate.setHours(hours, minutes, 0, 0)
+      const remindDate = dateInTimezone(gregDate, hours, minutes, event.timezone || 'UTC')
       const remindAtTs = Math.floor(remindDate.getTime() / 1000)
 
       const id = randomUUID()
