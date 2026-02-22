@@ -19,7 +19,7 @@ function displayDay(num) {
     :class="{
       'cursor-pointer hover:bg-teal-50/50 dark:hover:bg-teal-900/20': !day.empty,
       'bg-slate-50/50 dark:bg-slate-800/50': day.empty,
-      'ring-2 ring-inset ring-teal-500': focused,
+      'bg-teal-50 dark:bg-teal-900/30': focused,
     }"
   >
     <template v-if="!day.empty">
@@ -29,7 +29,8 @@ function displayDay(num) {
           class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-sm font-semibold"
           :class="{
             'bg-teal-600 text-white': day.isToday,
-            'text-slate-700 dark:text-slate-200': !day.isToday,
+            'bg-teal-100 text-teal-700 dark:bg-teal-800 dark:text-teal-300': focused && !day.isToday,
+            'text-slate-700 dark:text-slate-200': !day.isToday && !focused,
           }"
         >
           {{ displayDay(day.day) }}

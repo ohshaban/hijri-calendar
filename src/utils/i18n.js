@@ -65,6 +65,8 @@ const translations = {
     deleteRecurring: 'Delete recurring event',
     noRecurringEvents: 'No recurring events',
     confirmDelete: 'Are you sure you want to delete this?',
+    kbdNavigate: 'navigate',
+    kbdSelect: 'open',
   },
   ar: {
     appName: 'تقويم هلال',
@@ -109,5 +111,7 @@ const translations = {
     deleteRecurring: 'حذف التذكير المتكرر',
     noRecurringEvents: 'لا توجد أحداث متكررة',
     confirmDelete: 'هل أنت متأكد من الحذف؟',
+    kbdNavigate: 'تنقل',
+    kbdSelect: 'فتح',
   }
 }
