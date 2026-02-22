@@ -27,6 +27,8 @@ const pendingEdge = ref(null)
 const realDays = computed(() => props.days.filter(d => !d.empty))
 const slideDirection = ref('next')
 const gridKey = computed(() => `${props.currentYear}-${props.currentMonth}`)
+// Track whether grid had focus before transition so we can restore it after
+const needsFocus = ref(false)
 
 onMounted(() => {
   gridEl.value?.focus()
@@ -37,6 +39,9 @@ watch([() => props.currentMonth, () => props.currentYear], (newVal, oldVal) => {
   // Determine slide direction from month/year change
   const [newM, newY] = [newVal[0], newVal[1]]
   const [oldM, oldY] = [oldVal[0], oldVal[1]]
+  // Remember if grid had focus so we can restore after transition
+  needsFocus.value = gridFocused.value || pendingEdge.value !== null
+
   if (pendingEdge.value === 'first') slideDirection.value = 'next'
   else if (pendingEdge.value === 'last') slideDirection.value = 'prev'
   else if (newY > oldY || (newY === oldY && newM > oldM)) slideDirection.value = 'next'
@@ -52,8 +57,6 @@ watch([() => props.currentMonth, () => props.currentYear], (newVal, oldVal) => {
       selectedDay.value = props.todayDay > 0 ? props.todayDay - 1 : -1
     }
     pendingEdge.value = null
-    // Re-focus grid after transition
-    nextTick(() => gridEl.value?.focus())
   })
 })
 
@@ -119,6 +122,8 @@ function handleFocus() {
 }
 
 function handleBlur(e) {
+  // Don't clear focus state during month transitions (grid element is being swapped)
+  if (needsFocus.value) return
   if (gridEl.value && !gridEl.value.contains(e.relatedTarget)) {
     gridFocused.value = false
   }
@@ -135,6 +140,13 @@ function handleCellClick(day) {
     // First click — select this day
     selectedDay.value = idx
     gridEl.value?.focus()
+  }
+}
+
+function onAfterEnter() {
+  if (needsFocus.value) {
+    gridEl.value?.focus()
+    needsFocus.value = false
   }
 }
 
@@ -166,7 +178,7 @@ defineExpose({ refocus })
 
     <!-- Calendar cells with slide transition -->
     <div class="relative overflow-hidden">
-      <Transition :name="'slide-' + slideDirection" mode="out-in">
+      <Transition :name="'slide-' + slideDirection" mode="out-in" @after-enter="onAfterEnter">
         <div
           ref="gridEl"
           :key="gridKey"
