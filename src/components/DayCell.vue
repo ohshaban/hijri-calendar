@@ -18,7 +18,7 @@ function displayDay(num) {
 
 <template>
   <div
-    class="min-h-[80px] sm:min-h-[100px] p-1.5 sm:p-2 border-b border-e border-slate-100 dark:border-slate-700 relative group"
+    class="min-h-[56px] xs:min-h-[80px] sm:min-h-[100px] p-1 xs:p-1.5 sm:p-2 border-b border-e border-slate-100 dark:border-slate-700 relative group"
     :class="{
       'cursor-pointer hover:bg-teal-50/50 dark:hover:bg-teal-900/20': !day.empty,
       'bg-slate-50/50 dark:bg-slate-800/50': day.empty,
@@ -38,14 +38,14 @@ function displayDay(num) {
         >
           {{ displayDay(day.day) }}
         </span>
-        <!-- Gregorian small date -->
-        <span class="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1">
+        <!-- Gregorian small date (hidden on very small screens) -->
+        <span class="hidden xs:inline text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-1">
           {{ lang === 'ar' ? day.gregorianFormattedAr : day.gregorianFormatted }}
         </span>
       </div>
 
-      <!-- Islamic date label -->
-      <div v-if="day.islamicDate" class="mt-1">
+      <!-- Islamic date label (hidden on very small screens) -->
+      <div v-if="day.islamicDate" class="hidden xs:block mt-1">
         <span
           class="text-[10px] sm:text-xs font-medium px-1.5 py-0.5 rounded-full leading-tight inline-block"
           :class="{
@@ -71,8 +71,8 @@ function displayDay(num) {
         </span>
       </div>
 
-      <!-- Tap/click hint on selected cell -->
-      <div v-if="selected" class="absolute bottom-1 inset-x-0 text-center">
+      <!-- Tap/click hint on selected cell (hidden on very small screens) -->
+      <div v-if="selected" class="hidden xs:block absolute bottom-1 inset-x-0 text-center">
         <span class="text-[9px] sm:text-[10px] text-teal-600/70 dark:text-teal-400/60">
           {{ t('tapToRemind') }}
         </span>

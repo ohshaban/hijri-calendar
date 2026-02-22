@@ -25,13 +25,23 @@ const gridEl = ref(null)
 const pendingEdge = ref(null)
 
 const realDays = computed(() => props.days.filter(d => !d.empty))
+const slideDirection = ref('next')
+const gridKey = computed(() => `${props.currentYear}-${props.currentMonth}`)
 
 onMounted(() => {
   gridEl.value?.focus()
 })
 
 // When month/year changes, set selection to edge day if navigating across months
-watch([() => props.currentMonth, () => props.currentYear], () => {
+watch([() => props.currentMonth, () => props.currentYear], (newVal, oldVal) => {
+  // Determine slide direction from month/year change
+  const [newM, newY] = [newVal[0], newVal[1]]
+  const [oldM, oldY] = [oldVal[0], oldVal[1]]
+  if (pendingEdge.value === 'first') slideDirection.value = 'next'
+  else if (pendingEdge.value === 'last') slideDirection.value = 'prev'
+  else if (newY > oldY || (newY === oldY && newM > oldM)) slideDirection.value = 'next'
+  else slideDirection.value = 'prev'
+
   nextTick(() => {
     if (pendingEdge.value === 'last') {
       selectedDay.value = realDays.value.length - 1
@@ -42,6 +52,8 @@ watch([() => props.currentMonth, () => props.currentYear], () => {
       selectedDay.value = props.todayDay > 0 ? props.todayDay - 1 : -1
     }
     pendingEdge.value = null
+    // Re-focus grid after transition
+    nextTick(() => gridEl.value?.focus())
   })
 })
 
@@ -146,32 +158,37 @@ defineExpose({ refocus })
       <div
         v-for="name in dayNames"
         :key="name"
-        class="py-3 text-center text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
+        class="py-2 xs:py-3 text-center text-[10px] xs:text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider"
       >
         {{ name }}
       </div>
     </div>
 
-    <!-- Calendar cells -->
-    <div
-      ref="gridEl"
-      class="grid grid-cols-7 outline-none"
-      tabindex="0"
-      role="grid"
-      aria-label="Calendar"
-      @keydown="handleGridKeydown"
-      @focus="handleFocus"
-      @blur="handleBlur"
-    >
-      <DayCell
-        v-for="(day, i) in days"
-        :key="i"
-        :day="day"
-        :lang="lang"
-        :reminders="dayReminders(day)"
-        :selected="isSelected(day)"
-        @click="handleCellClick(day)"
-      />
+    <!-- Calendar cells with slide transition -->
+    <div class="relative overflow-hidden">
+      <Transition :name="'slide-' + slideDirection" mode="out-in">
+        <div
+          ref="gridEl"
+          :key="gridKey"
+          class="grid grid-cols-7 outline-none"
+          tabindex="0"
+          role="grid"
+          aria-label="Calendar"
+          @keydown="handleGridKeydown"
+          @focus="handleFocus"
+          @blur="handleBlur"
+        >
+          <DayCell
+            v-for="(day, i) in days"
+            :key="i"
+            :day="day"
+            :lang="lang"
+            :reminders="dayReminders(day)"
+            :selected="isSelected(day)"
+            @click="handleCellClick(day)"
+          />
+        </div>
+      </Transition>
     </div>
 
     <!-- Keyboard hint bar (desktop only, shown when grid has DOM focus) -->

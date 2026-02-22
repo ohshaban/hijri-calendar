@@ -3,6 +3,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
+  --breakpoint-xs: 480px;
+
   --color-teal-50: #f0fdfa;
   --color-teal-100: #ccfbf1;
   --color-teal-200: #99f6e4;
@@ -41,4 +43,43 @@
 }
 .dark ::-webkit-scrollbar-thumb {
   background: #475569;
+}
+
+/* Month slide transitions */
+.slide-next-enter-active,
+.slide-next-leave-active,
+.slide-prev-enter-active,
+.slide-prev-leave-active {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.slide-next-enter-from {
+  transform: translateX(30px);
+  opacity: 0;
+}
+.slide-next-leave-to {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+
+.slide-prev-enter-from {
+  transform: translateX(-30px);
+  opacity: 0;
+}
+.slide-prev-leave-to {
+  transform: translateX(30px);
+  opacity: 0;
+}
+
+[dir="rtl"] .slide-next-enter-from {
+  transform: translateX(-30px);
+}
+[dir="rtl"] .slide-next-leave-to {
+  transform: translateX(30px);
+}
+[dir="rtl"] .slide-prev-enter-from {
+  transform: translateX(30px);
+}
+[dir="rtl"] .slide-prev-leave-to {
+  transform: translateX(-30px);
 }
