@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import {
-  getReminders, createReminder, deleteReminder,
+  getReminders, createReminder, updateReminder, deleteReminder,
   getRecurringEvents, createRecurringEvent, deleteRecurringEvent
 } from '../utils/api.js'
 
@@ -32,6 +32,22 @@ export function useReminders() {
       return true
     } catch (err) {
       error.value = err.error || 'Failed to create reminder'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function editReminder(id, data) {
+    loading.value = true
+    error.value = ''
+    try {
+      const result = await updateReminder(id, data)
+      const idx = reminders.value.findIndex(r => r.id === id)
+      if (idx >= 0) reminders.value[idx] = result.reminder
+      return true
+    } catch (err) {
+      error.value = err.error || 'Failed to update reminder'
       return false
     } finally {
       loading.value = false
@@ -89,7 +105,7 @@ export function useReminders() {
 
   return {
     reminders, recurringEvents, loading, error,
-    fetchReminders, addReminder, removeReminder,
+    fetchReminders, addReminder, editReminder, removeReminder,
     fetchRecurringEvents, addRecurringEvent, removeRecurringEvent
   }
 }

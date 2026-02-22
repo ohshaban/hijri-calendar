@@ -70,6 +70,10 @@ export async function createReminder(data) {
   })
 }
 
+export async function updateReminder(id, data) {
+  return request(`/reminders/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+}
+
 export async function deleteReminder(id) {
   return request(`/reminders/${id}`, { method: 'DELETE' })
 }
