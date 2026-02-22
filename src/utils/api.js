@@ -73,3 +73,16 @@ export async function createReminder(data) {
 export async function deleteReminder(id) {
   return request(`/reminders/${id}`, { method: 'DELETE' })
 }
+
+// Recurring Events
+export async function getRecurringEvents() {
+  return request('/recurring')
+}
+
+export async function createRecurringEvent(data) {
+  return request('/recurring', { method: 'POST', body: JSON.stringify(data) })
+}
+
+export async function deleteRecurringEvent(id) {
+  return request(`/recurring/${id}`, { method: 'DELETE' })
+}

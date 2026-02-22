@@ -58,6 +58,12 @@ const translations = {
     past: 'Past',
     sent: 'Sent',
     pending: 'Pending',
+    recurringReminder: 'Recurring annual reminder',
+    recurringEvents: 'Recurring Events',
+    originYear: 'Origin Year',
+    annualReminder: 'Annual Reminder',
+    deleteRecurring: 'Delete recurring event',
+    noRecurringEvents: 'No recurring events',
   },
   ar: {
     appName: 'تقويم هلال',
@@ -95,5 +101,11 @@ const translations = {
     past: 'السابقة',
     sent: 'تم الإرسال',
     pending: 'قيد الانتظار',
+    recurringReminder: 'تذكير سنوي متكرر',
+    recurringEvents: 'الأحداث المتكررة',
+    originYear: 'سنة الحدث',
+    annualReminder: 'تذكير سنوي',
+    deleteRecurring: 'حذف التذكير المتكرر',
+    noRecurringEvents: 'لا توجد أحداث متكررة',
   }
 }

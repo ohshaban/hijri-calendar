@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import auth from './routes/auth.js'
 import reminders from './routes/reminders.js'
+import recurring from './routes/recurring.js'
 import { startScheduler } from './services/scheduler.js'
 
 const app = new Hono()
@@ -55,6 +56,7 @@ app.use('/api/*', rateLimit(60000, 60))
 
 app.route('/api/auth', auth)
 app.route('/api/reminders', reminders)
+app.route('/api/recurring', recurring)
 
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 

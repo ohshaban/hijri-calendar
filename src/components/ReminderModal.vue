@@ -17,6 +17,7 @@ const { t } = useLang()
 const title = ref('')
 const description = ref('')
 const remindTime = ref('09:00')
+const isRecurring = ref(false)
 const success = ref(false)
 
 const hijriDateStr = `${props.year}-${String(props.month).padStart(2, '0')}-${String(props.day.day).padStart(2, '0')}`
@@ -26,19 +27,35 @@ const gregDateStr = gregDate.toISOString().split('T')[0]
 async function handleSave() {
   if (!title.value.trim()) return
 
-  const remindAt = new Date(`${gregDateStr}T${remindTime.value}:00`)
+  if (isRecurring.value) {
+    const ok = await props.reminderState.addRecurringEvent({
+      title: title.value.trim(),
+      description: description.value.trim(),
+      hijriMonth: props.month,
+      hijriDay: props.day.day,
+      originYear: props.year,
+      remindTime: remindTime.value,
+    })
 
-  const ok = await props.reminderState.addReminder({
-    title: title.value.trim(),
-    description: description.value.trim(),
-    hijriDate: hijriDateStr,
-    gregorianDate: gregDateStr,
-    remindAt: remindAt.toISOString(),
-  })
+    if (ok) {
+      success.value = true
+      setTimeout(() => emit('close'), 1500)
+    }
+  } else {
+    const remindAt = new Date(`${gregDateStr}T${remindTime.value}:00`)
 
-  if (ok) {
-    success.value = true
-    setTimeout(() => emit('close'), 1500)
+    const ok = await props.reminderState.addReminder({
+      title: title.value.trim(),
+      description: description.value.trim(),
+      hijriDate: hijriDateStr,
+      gregorianDate: gregDateStr,
+      remindAt: remindAt.toISOString(),
+    })
+
+    if (ok) {
+      success.value = true
+      setTimeout(() => emit('close'), 1500)
+    }
   }
 }
 </script>
@@ -70,6 +87,21 @@ async function handleSave() {
           <p class="text-sm text-teal-600/70 dark:text-teal-500">
             {{ lang === 'ar' ? day.gregorianFormattedAr : day.gregorianFormatted }}
           </p>
+        </div>
+
+        <!-- Recurring toggle -->
+        <label class="flex items-center gap-2 mb-4 cursor-pointer select-none">
+          <input
+            v-model="isRecurring"
+            type="checkbox"
+            class="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+          />
+          <span class="text-sm font-medium text-slate-600 dark:text-slate-400">{{ t('recurringReminder') }}</span>
+        </label>
+
+        <!-- Origin year context for recurring -->
+        <div v-if="isRecurring" class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-2.5 mb-4 text-xs text-amber-700 dark:text-amber-400">
+          {{ t('originYear') }}: {{ year }} {{ lang === 'ar' ? 'هـ' : 'AH' }}
         </div>
 
         <!-- Form -->

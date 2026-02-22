@@ -50,6 +50,28 @@ db.exec(`
     ON otp_codes(email);
   CREATE INDEX IF NOT EXISTS idx_sessions_token
     ON sessions(token);
+
+  CREATE TABLE IF NOT EXISTS recurring_events (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    hijri_month INTEGER NOT NULL,
+    hijri_day INTEGER NOT NULL,
+    origin_year INTEGER NOT NULL,
+    remind_time TEXT NOT NULL DEFAULT '09:00',
+    active INTEGER DEFAULT 1,
+    created_at INTEGER NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_recurring_email ON recurring_events(email);
 `)
+
+// Safe migration: add recurring_event_id column if it doesn't exist
+try {
+  db.exec(`ALTER TABLE reminders ADD COLUMN recurring_event_id TEXT DEFAULT NULL`)
+} catch (e) {
+  // Column already exists, ignore
+}
 
 export default db

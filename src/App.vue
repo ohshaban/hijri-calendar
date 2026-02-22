@@ -56,12 +56,14 @@ function onShowReminders() {
     return
   }
   reminderState.fetchReminders()
+  reminderState.fetchRecurringEvents()
   showReminderList.value = true
 }
 
 async function onSignOut() {
   await auth.logout()
   reminderState.reminders.value = []
+  reminderState.recurringEvents.value = []
 }
 
 watch(() => auth.isAuthenticated.value, (val) => {
