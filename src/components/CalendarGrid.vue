@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch, nextTick } from 'vue'
+import { computed, ref, watch, nextTick, onMounted } from 'vue'
 import { getDayNames } from '../utils/hijri.js'
 import { useLang } from '../utils/i18n.js'
 import DayCell from './DayCell.vue'
@@ -25,6 +25,10 @@ const gridEl = ref(null)
 const pendingEdge = ref(null)
 
 const realDays = computed(() => props.days.filter(d => !d.empty))
+
+onMounted(() => {
+  gridEl.value?.focus()
+})
 
 // When month/year changes, set selection to edge day if navigating across months
 watch([() => props.currentMonth, () => props.currentYear], () => {
