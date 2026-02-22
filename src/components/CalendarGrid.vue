@@ -80,7 +80,6 @@ function handleFocus() {
 }
 
 function handleBlur(e) {
-  // Only clear focus if focus left the grid entirely (not moving to a child)
   if (gridEl.value && !gridEl.value.contains(e.relatedTarget)) {
     gridHasFocus.value = false
   }
@@ -88,12 +87,17 @@ function handleBlur(e) {
 
 function handleCellClick(day) {
   if (day.empty) return
-  // Set focus to clicked day
   const idx = realDays.value.findIndex(d => d.day === day.day)
-  if (idx >= 0) focusedDay.value = idx
-  // Refocus the grid so keyboard keeps working
-  gridEl.value?.focus()
-  emit('day-click', day)
+
+  if (gridHasFocus.value && focusedDay.value === idx) {
+    // Already focused on this day — open it
+    emit('day-click', day)
+  } else {
+    // First click — just focus the grid and select this day
+    focusedDay.value = idx
+    gridHasFocus.value = true
+    gridEl.value?.focus()
+  }
 }
 
 function isFocused(day) {
@@ -137,7 +141,7 @@ function isFocused(day) {
       />
     </div>
 
-    <!-- Keyboard hint (desktop only) -->
+    <!-- Keyboard hint (desktop only, shown when grid is focused) -->
     <div v-if="gridHasFocus" class="hidden sm:flex items-center justify-center gap-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700 text-[11px] text-slate-400 dark:text-slate-500">
       <span><kbd class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[10px]">&larr;&rarr;&uarr;&darr;</kbd> {{ t('kbdNavigate') }}</span>
       <span><kbd class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[10px]">Enter</kbd> {{ t('kbdSelect') }}</span>
