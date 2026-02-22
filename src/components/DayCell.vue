@@ -1,12 +1,15 @@
 <script setup>
 import { toArabicNumerals } from '../utils/hijri.js'
+import { useLang } from '../utils/i18n.js'
 
 const props = defineProps({
   day: Object,
   lang: String,
   reminders: Array,
-  focused: { type: Boolean, default: false },
+  selected: { type: Boolean, default: false },
 })
+
+const { t } = useLang()
 
 function displayDay(num) {
   return props.lang === 'ar' ? toArabicNumerals(num) : num
@@ -19,7 +22,7 @@ function displayDay(num) {
     :class="{
       'cursor-pointer hover:bg-teal-50/50 dark:hover:bg-teal-900/20': !day.empty,
       'bg-slate-50/50 dark:bg-slate-800/50': day.empty,
-      'bg-teal-50 dark:bg-teal-900/30': focused,
+      'bg-teal-50 dark:bg-teal-900/30': selected,
     }"
   >
     <template v-if="!day.empty">
@@ -29,8 +32,8 @@ function displayDay(num) {
           class="inline-flex items-center justify-center w-7 h-7 sm:w-8 sm:h-8 rounded-full text-sm font-semibold"
           :class="{
             'bg-teal-600 text-white': day.isToday,
-            'bg-teal-100 text-teal-700 dark:bg-teal-800 dark:text-teal-300': focused && !day.isToday,
-            'text-slate-700 dark:text-slate-200': !day.isToday && !focused,
+            'bg-teal-100 text-teal-700 dark:bg-teal-800 dark:text-teal-300': selected && !day.isToday,
+            'text-slate-700 dark:text-slate-200': !day.isToday && !selected,
           }"
         >
           {{ displayDay(day.day) }}
@@ -65,6 +68,13 @@ function displayDay(num) {
         />
         <span v-if="reminders.length > 3" class="text-[10px] text-slate-400">
           +{{ reminders.length - 3 }}
+        </span>
+      </div>
+
+      <!-- Tap/click hint on selected cell -->
+      <div v-if="selected" class="absolute bottom-1 inset-x-0 text-center">
+        <span class="text-[9px] sm:text-[10px] text-teal-600/70 dark:text-teal-400/60">
+          {{ t('tapToRemind') }}
         </span>
       </div>
     </template>

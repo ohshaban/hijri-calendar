@@ -68,6 +68,7 @@ const translations = {
     kbdNavigate: 'navigate',
     kbdSelect: 'open',
     kbdCreateReminder: 'create reminder',
+    tapToRemind: 'tap to set reminder',
   },
   ar: {
     appName: 'تقويم هلال',
@@ -115,5 +116,6 @@ const translations = {
     kbdNavigate: 'تنقل',
     kbdSelect: 'فتح',
     kbdCreateReminder: 'إنشاء تذكير',
+    tapToRemind: 'انقر لإنشاء تذكير',
   }
 }
