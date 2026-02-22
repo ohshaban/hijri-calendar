@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, nextTick } from 'vue'
 import { getDayNames } from '../utils/hijri.js'
 import { useLang } from '../utils/i18n.js'
 import DayCell from './DayCell.vue'
@@ -10,21 +10,30 @@ const props = defineProps({
   reminders: Array,
   currentMonth: Number,
   currentYear: Number,
+  todayDay: { type: Number, default: -1 },
 })
 
-const emit = defineEmits(['day-click'])
+const emit = defineEmits(['day-click', 'prev', 'next'])
 const { t } = useLang()
 
 const dayNames = computed(() => getDayNames(props.lang))
-const focusedDay = ref(-1)
-const gridHasFocus = ref(false)
+const focusedDay = ref(props.todayDay > 0 ? props.todayDay - 1 : 0)
+const gridHasFocus = ref(true)
 const gridEl = ref(null)
+const pendingEdge = ref(null) // 'first' or 'last' — set when navigating across months
 
 const realDays = computed(() => props.days.filter(d => !d.empty))
 
-// Reset focus when month/year changes
+// When month/year changes, set focus to edge day if we navigated across months
 watch([() => props.currentMonth, () => props.currentYear], () => {
-  focusedDay.value = -1
+  nextTick(() => {
+    if (pendingEdge.value === 'last') {
+      focusedDay.value = realDays.value.length - 1
+    } else if (pendingEdge.value === 'first') {
+      focusedDay.value = 0
+    }
+    pendingEdge.value = null
+  })
 })
 
 function dayReminders(day) {
@@ -38,28 +47,61 @@ function handleGridKeydown(e) {
   if (!total) return
 
   const rtl = document.documentElement.dir === 'rtl'
+  const cur = focusedDay.value < 0 ? 0 : focusedDay.value
 
   switch (e.key) {
     case 'ArrowRight': {
       e.preventDefault()
       const dir = rtl ? -1 : 1
-      focusedDay.value = clamp((focusedDay.value < 0 ? 0 : focusedDay.value) + dir, 0, total - 1)
+      const next = cur + dir
+      if (next >= total) {
+        pendingEdge.value = 'first'
+        emit('next')
+      } else if (next < 0) {
+        pendingEdge.value = 'last'
+        emit('prev')
+      } else {
+        focusedDay.value = next
+      }
       break
     }
     case 'ArrowLeft': {
       e.preventDefault()
       const dir = rtl ? 1 : -1
-      focusedDay.value = clamp((focusedDay.value < 0 ? 0 : focusedDay.value) + dir, 0, total - 1)
+      const next = cur + dir
+      if (next >= total) {
+        pendingEdge.value = 'first'
+        emit('next')
+      } else if (next < 0) {
+        pendingEdge.value = 'last'
+        emit('prev')
+      } else {
+        focusedDay.value = next
+      }
       break
     }
-    case 'ArrowDown':
+    case 'ArrowDown': {
       e.preventDefault()
-      focusedDay.value = clamp((focusedDay.value < 0 ? 0 : focusedDay.value) + 7, 0, total - 1)
+      const next = cur + 7
+      if (next >= total) {
+        pendingEdge.value = 'first'
+        emit('next')
+      } else {
+        focusedDay.value = next
+      }
       break
-    case 'ArrowUp':
+    }
+    case 'ArrowUp': {
       e.preventDefault()
-      focusedDay.value = clamp((focusedDay.value < 0 ? 0 : focusedDay.value) - 7, 0, total - 1)
+      const next = cur - 7
+      if (next < 0) {
+        pendingEdge.value = 'last'
+        emit('prev')
+      } else {
+        focusedDay.value = next
+      }
       break
+    }
     case 'Enter':
     case ' ':
       if (focusedDay.value >= 0) {
@@ -68,10 +110,6 @@ function handleGridKeydown(e) {
       }
       break
   }
-}
-
-function clamp(val, min, max) {
-  return Math.min(max, Math.max(min, val))
 }
 
 function handleFocus() {
@@ -100,10 +138,23 @@ function handleCellClick(day) {
   }
 }
 
+function refocus() {
+  gridHasFocus.value = true
+  gridEl.value?.focus()
+}
+
 function isFocused(day) {
   if (day.empty || focusedDay.value < 0 || !gridHasFocus.value) return false
   return realDays.value[focusedDay.value]?.day === day.day
 }
+
+const selectedDayName = computed(() => {
+  if (focusedDay.value < 0 || !gridHasFocus.value) return ''
+  const day = realDays.value[focusedDay.value]
+  return day ? String(day.day) : ''
+})
+
+defineExpose({ refocus })
 </script>
 
 <template>
@@ -141,10 +192,10 @@ function isFocused(day) {
       />
     </div>
 
-    <!-- Keyboard hint (desktop only, shown when grid is focused) -->
+    <!-- Hint bar (desktop only) -->
     <div v-if="gridHasFocus" class="hidden sm:flex items-center justify-center gap-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700 text-[11px] text-slate-400 dark:text-slate-500">
       <span><kbd class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[10px]">&larr;&rarr;&uarr;&darr;</kbd> {{ t('kbdNavigate') }}</span>
-      <span><kbd class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[10px]">Enter</kbd> {{ t('kbdSelect') }}</span>
+      <span><kbd class="px-1 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono text-[10px]">Enter</kbd> {{ t('kbdCreateReminder') }}</span>
     </div>
   </div>
 </template>

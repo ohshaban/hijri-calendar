@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { useLang } from './utils/i18n.js'
 import { useCalendar } from './composables/useCalendar.js'
 import { useAuth } from './composables/useAuth.js'
@@ -22,6 +22,7 @@ const showAuthModal = ref(false)
 const showReminderModal = ref(false)
 const showReminderList = ref(false)
 const selectedDay = ref(null)
+const calendarGrid = ref(null)
 
 function toggleDark() {
   dark.value = !dark.value
@@ -41,6 +42,17 @@ function onDayClick(day) {
   } else {
     showReminderModal.value = true
   }
+}
+
+function onModalClose() {
+  showReminderModal.value = false
+  selectedDay.value = null
+  nextTick(() => calendarGrid.value?.refocus())
+}
+
+function onAuthClose() {
+  showAuthModal.value = false
+  nextTick(() => calendarGrid.value?.refocus())
 }
 
 function onAuthSuccess() {
@@ -149,12 +161,16 @@ watch(() => auth.isAuthenticated.value, (val) => {
       />
 
       <CalendarGrid
+        ref="calendarGrid"
         :days="calendar.calendarDays.value"
         :lang="lang"
         :reminders="reminderState.reminders.value"
         :current-month="calendar.currentMonth.value"
         :current-year="calendar.currentYear.value"
+        :today-day="calendar.currentYear.value === calendar.today.year && calendar.currentMonth.value === calendar.today.month ? calendar.today.day : -1"
         @day-click="onDayClick"
+        @prev="calendar.prevMonth"
+        @next="calendar.nextMonth"
       />
     </main>
 
@@ -162,7 +178,7 @@ watch(() => auth.isAuthenticated.value, (val) => {
       v-if="showAuthModal"
       :auth="auth"
       :lang="lang"
-      @close="showAuthModal = false"
+      @close="onAuthClose"
       @success="onAuthSuccess"
     />
 
@@ -173,7 +189,7 @@ watch(() => auth.isAuthenticated.value, (val) => {
       :month="calendar.currentMonth.value"
       :reminder-state="reminderState"
       :lang="lang"
-      @close="showReminderModal = false; selectedDay = null"
+      @close="onModalClose"
     />
 
     <ReminderList

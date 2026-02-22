@@ -67,6 +67,7 @@ const translations = {
     confirmDelete: 'Are you sure you want to delete this?',
     kbdNavigate: 'navigate',
     kbdSelect: 'open',
+    kbdCreateReminder: 'create reminder',
   },
   ar: {
     appName: 'تقويم هلال',
@@ -113,5 +114,6 @@ const translations = {
     confirmDelete: 'هل أنت متأكد من الحذف؟',
     kbdNavigate: 'تنقل',
     kbdSelect: 'فتح',
+    kbdCreateReminder: 'إنشاء تذكير',
   }
 }
