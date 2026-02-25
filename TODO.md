@@ -38,6 +38,9 @@
 - ~~Resend domain verification~~, ~~Mobile header overflow~~, ~~Arabic numerals~~
 - ~~Toast notifications~~, ~~Loading skeleton~~, ~~Keyboard navigation~~, ~~Empty month padding~~
 - ~~Responsive cells~~, ~~Year range~~, ~~Month transitions~~, ~~PWA~~, ~~Timezone~~, ~~Reminder edit~~, ~~Delete confirmation~~
+- ~~Mobile detail panel~~, ~~Tap icon hint~~, ~~Header button sizing~~, ~~Date/time formatting~~
+- ~~Categorize reminders~~, ~~Gregorian-to-Hijri lookup~~, ~~Advance reminders~~, ~~Edit recurring~~
+- ~~App info menu~~
 
 ---
 

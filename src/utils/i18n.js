@@ -82,6 +82,10 @@ const translations = {
     onTheDay: 'On the day',
     daysBefore: '{n} days before',
     daysBeforeLabel: 'days before',
+    about: 'About',
+    contact: 'Contact / Suggestions',
+    sourceCode: 'Source Code',
+    support: 'Support this project',
   },
   ar: {
     appName: 'تقويم هلال',
@@ -143,5 +147,9 @@ const translations = {
     onTheDay: 'في نفس اليوم',
     daysBefore: 'قبل {n} أيام',
     daysBeforeLabel: 'أيام قبل',
+    about: 'حول',
+    contact: 'تواصل / اقتراحات',
+    sourceCode: 'الكود المصدري',
+    support: 'ادعم المشروع',
   }
 }
