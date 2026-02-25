@@ -49,6 +49,7 @@ function handleDateLookup() {
       formatted: formatHijriDate(hijri.year, hijri.month, hijri.day, lang.value),
       year: hijri.year,
       month: hijri.month,
+      day: hijri.day,
     }
   } catch {
     lookupResult.value = null
@@ -57,10 +58,14 @@ function handleDateLookup() {
 
 function goToLookupDate() {
   if (!lookupResult.value) return
-  calendar.goToHijriDate(lookupResult.value.year, lookupResult.value.month)
+  const { year, month, day } = lookupResult.value
+  calendar.goToHijriDate(year, month)
   showDateLookup.value = false
   lookupResult.value = null
   gregorianInput.value = ''
+  nextTick(() => {
+    calendarGrid.value?.selectDayByNumber(day)
+  })
 }
 
 function onDayClick(day) {

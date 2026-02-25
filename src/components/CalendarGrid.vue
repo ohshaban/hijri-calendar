@@ -173,7 +173,15 @@ function isSelected(day) {
   return realDays.value[selectedDay.value]?.day === day.day
 }
 
-defineExpose({ refocus })
+function selectDayByNumber(dayNum) {
+  const idx = realDays.value.findIndex(d => d.day === dayNum)
+  if (idx >= 0) {
+    selectedDay.value = idx
+    gridEl.value?.focus()
+  }
+}
+
+defineExpose({ refocus, selectDayByNumber })
 </script>
 
 <template>

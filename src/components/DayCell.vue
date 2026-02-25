@@ -44,6 +44,17 @@ function displayDay(num) {
         </span>
       </div>
 
+      <!-- Islamic date indicator dot (mobile only, when label is hidden) -->
+      <div v-if="day.islamicDate" class="xs:hidden mt-0.5">
+        <span
+          class="w-2 h-2 rounded-full inline-block"
+          :class="{
+            'bg-emerald-500': day.islamicDate.color === 'emerald',
+            'bg-amber-500': day.islamicDate.color === 'amber',
+            'bg-teal-500': day.islamicDate.color === 'teal',
+          }"
+        />
+      </div>
       <!-- Islamic date label (hidden on very small screens) -->
       <div v-if="day.islamicDate" class="hidden xs:block mt-1">
         <span

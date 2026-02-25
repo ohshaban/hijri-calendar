@@ -88,6 +88,19 @@ function formatHijriMonthDay(month, day) {
   return `${day} ${monthName}`
 }
 
+function formatHijriDateStr(hijriDate) {
+  if (!hijriDate) return ''
+  const parts = hijriDate.split('-').map(Number)
+  if (parts.length !== 3) return hijriDate
+  const [year, month, day] = parts
+  const monthName = getMonthName(month, props.lang)
+  if (props.lang === 'ar') {
+    const toAr = (n) => String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d])
+    return `${toAr(day)} ${monthName} ${toAr(year)} هـ`
+  }
+  return `${day} ${monthName} ${year} AH`
+}
+
 async function handleDelete(id) {
   if (!confirm(t('confirmDelete'))) return
   const ok = await props.reminderState.removeReminder(id)
@@ -254,7 +267,7 @@ async function handleDeleteRecurring(id) {
                     <p class="font-medium text-sm truncate">{{ r.title }}</p>
                     <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">{{ t('pending') }}</span>
                   </div>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ r.hijri_date }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ formatHijriDateStr(r.hijri_date) }}</p>
                   <p class="text-xs text-slate-400 dark:text-slate-500">{{ formatDate(r.remind_at) }}</p>
                 </div>
                 <div class="flex gap-1 shrink-0">
@@ -304,7 +317,7 @@ async function handleDeleteRecurring(id) {
                     <p class="font-medium text-sm truncate">{{ r.title }}</p>
                     <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">{{ t('sent') }}</span>
                   </div>
-                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ r.hijri_date }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ formatHijriDateStr(r.hijri_date) }}</p>
                   <p class="text-xs text-slate-400 dark:text-slate-500">{{ formatDate(r.remind_at) }}</p>
                 </div>
               </div>

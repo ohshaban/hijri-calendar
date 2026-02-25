@@ -11,7 +11,7 @@ const props = defineProps({
 const emit = defineEmits(['prev', 'next', 'today', 'set-month', 'set-year'])
 const { t } = useLang()
 
-const years = Array.from({ length: 201 }, (_, i) => 1350 + i)
+const years = Array.from({ length: 151 }, (_, i) => 1350 + i)
 </script>
 
 <template>
