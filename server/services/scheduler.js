@@ -3,6 +3,20 @@ import { randomUUID } from 'crypto'
 import db from '../db.js'
 import { sendReminderEmail } from './email.js'
 
+const HIJRI_MONTHS = [
+  '', 'Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani',
+  'Jumada al-Ula', 'Jumada al-Akhira', 'Rajab', "Sha'ban",
+  'Ramadan', 'Shawwal', "Dhu al-Qi'da", 'Dhu al-Hijja'
+]
+
+function formatHijriDate(hijriDateStr) {
+  const parts = hijriDateStr.split('-').map(Number)
+  if (parts.length !== 3) return hijriDateStr
+  const [year, month, day] = parts
+  const monthName = HIJRI_MONTHS[month] || month
+  return `${day} ${monthName} ${year} AH`
+}
+
 // Handle @umalqura/core ESM import in Node
 let uq
 async function getUq() {
@@ -99,13 +113,23 @@ export function generateReminderForEvent(event) {
         remindAtTs -= daysBefore * 86400
       }
 
+      // Compute the actual Gregorian date the reminder fires on
+      const remindGregDate = new Date(remindAtTs * 1000)
+      const remindGregDateStr = remindGregDate.toISOString().split('T')[0]
+
+      // Build title: add "in N day(s)" suffix for advance reminders
+      let reminderTitle = event.title
+      if (daysBefore > 0) {
+        reminderTitle = `${event.title} (in ${daysBefore} day${daysBefore > 1 ? 's' : ''})`
+      }
+
       const id = randomUUID()
       const now = Math.floor(Date.now() / 1000)
 
       db.prepare(
         `INSERT INTO reminders (id, email, title, description, hijri_date, gregorian_date, remind_at, created_at, recurring_event_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(id, event.email, event.title, event.description || '', hijriDateStr, gregDateStr, remindAtTs, now, event.id)
+      ).run(id, event.email, reminderTitle, event.description || '', hijriDateStr, remindGregDateStr, remindAtTs, now, event.id)
 
       console.log(`Generated recurring reminder ${id} for event ${event.id} on ${hijriDateStr} (${daysBefore} days before)`)
     } catch (err) {
@@ -144,13 +168,23 @@ async function generateRecurringReminders() {
         remindAtTs -= daysBefore * 86400
       }
 
+      // Compute the actual Gregorian date the reminder fires on
+      const remindGregDate = new Date(remindAtTs * 1000)
+      const remindGregDateStr = remindGregDate.toISOString().split('T')[0]
+
+      // Build title: add "in N day(s)" suffix for advance reminders
+      let reminderTitle = event.title
+      if (daysBefore > 0) {
+        reminderTitle = `${event.title} (in ${daysBefore} day${daysBefore > 1 ? 's' : ''})`
+      }
+
       const id = randomUUID()
       const now = Math.floor(Date.now() / 1000)
 
       db.prepare(
         `INSERT INTO reminders (id, email, title, description, hijri_date, gregorian_date, remind_at, created_at, recurring_event_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(id, event.email, event.title, event.description || '', hijriDateStr, gregDateStr, remindAtTs, now, event.id)
+      ).run(id, event.email, reminderTitle, event.description || '', hijriDateStr, remindGregDateStr, remindAtTs, now, event.id)
 
       console.log(`Generated recurring reminder ${id} for event ${event.id} on ${hijriDateStr} (${daysBefore} days before)`)
     }
@@ -172,7 +206,7 @@ export function startScheduler() {
         reminder.email,
         reminder.title,
         reminder.description,
-        reminder.hijri_date
+        formatHijriDate(reminder.hijri_date)
       )
       if (success) {
         db.prepare('UPDATE reminders SET sent = 1 WHERE id = ?').run(reminder.id)

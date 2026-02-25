@@ -146,7 +146,7 @@ watch(() => auth.isAuthenticated.value, (val) => {
             >
               <div @click.self="showInfoMenu = false" class="fixed inset-0 z-[-1]" />
               <a
-                href="mailto:hilal@hilalshaban.com"
+                href="mailto:developer.ohs@gmail.com"
                 class="flex items-center gap-2 px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-slate-700"
               >
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
@@ -276,6 +276,7 @@ watch(() => auth.isAuthenticated.value, (val) => {
         :days="calendar.calendarDays.value"
         :lang="lang"
         :reminders="reminderState.reminders.value"
+        :recurring-events="reminderState.recurringEvents.value"
         :current-month="calendar.currentMonth.value"
         :current-year="calendar.currentYear.value"
         :today-day="calendar.currentYear.value === calendar.today.year && calendar.currentMonth.value === calendar.today.month ? calendar.today.day : -1"

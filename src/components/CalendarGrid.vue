@@ -8,6 +8,7 @@ const props = defineProps({
   days: Array,
   lang: String,
   reminders: Array,
+  recurringEvents: { type: Array, default: () => [] },
   currentMonth: Number,
   currentYear: Number,
   todayDay: { type: Number, default: -1 },
@@ -35,6 +36,7 @@ const selectedDayData = computed(() => {
   return {
     day,
     reminders: dayReminders(day),
+    recurringEvents: dayRecurringEvents(day),
     hijriFormatted: formatHijriDate(props.currentYear, props.currentMonth, day.day, props.lang),
   }
 })
@@ -82,6 +84,11 @@ function dayReminders(day) {
   if (!day || day.empty || !props.reminders) return []
   const hijriDate = `${props.currentYear}-${String(props.currentMonth).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`
   return props.reminders.filter(r => r.hijri_date === hijriDate && !r.cancelled)
+}
+
+function dayRecurringEvents(day) {
+  if (!day || day.empty || !props.recurringEvents) return []
+  return props.recurringEvents.filter(e => e.hijri_month === props.currentMonth && e.hijri_day === day.day && e.active)
 }
 
 function handleGridKeydown(e) {
@@ -230,6 +237,7 @@ defineExpose({ refocus, selectDayByNumber })
             :day="day"
             :lang="lang"
             :reminders="dayReminders(day)"
+            :recurring-events="dayRecurringEvents(day)"
             :selected="isSelected(day)"
             @click="handleCellClick(day)"
           />
@@ -260,14 +268,21 @@ defineExpose({ refocus, selectDayByNumber })
           }"
         >{{ lang === 'ar' ? selectedDayData.day.islamicDate.ar : selectedDayData.day.islamicDate.en }}</span>
       </div>
+      <!-- Recurring events for this day -->
+      <div v-if="selectedDayData.recurringEvents.length > 0" class="space-y-1">
+        <div v-for="e in selectedDayData.recurringEvents" :key="e.id" class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+          <span class="text-xs text-slate-600 dark:text-slate-400 truncate">{{ e.title }}</span>
+        </div>
+      </div>
       <!-- Reminders for this day -->
       <div v-if="selectedDayData.reminders.length > 0" class="space-y-1">
         <div v-for="r in selectedDayData.reminders" :key="r.id" class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
+          <span class="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
           <span class="text-xs text-slate-600 dark:text-slate-400 truncate">{{ r.title }}</span>
         </div>
       </div>
-      <p v-else-if="!selectedDayData.day.islamicDate" class="text-[11px] text-slate-400 dark:text-slate-500">{{ t('noReminders') }}</p>
+      <p v-else-if="!selectedDayData.day.islamicDate && selectedDayData.recurringEvents.length === 0" class="text-[11px] text-slate-400 dark:text-slate-500">{{ t('noReminders') }}</p>
     </div>
 
     <!-- Keyboard hint bar (desktop only, shown when grid has DOM focus) -->

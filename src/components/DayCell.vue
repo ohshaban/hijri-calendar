@@ -6,6 +6,7 @@ const props = defineProps({
   day: Object,
   lang: String,
   reminders: Array,
+  recurringEvents: { type: Array, default: () => [] },
   selected: { type: Boolean, default: false },
 })
 
@@ -44,8 +45,8 @@ function displayDay(num) {
         </span>
       </div>
 
-      <!-- Mobile: combined indicator dots (Islamic date + reminders) -->
-      <div v-if="day.islamicDate || reminders.length > 0" class="xs:hidden mt-0.5 flex gap-0.5 items-center">
+      <!-- Mobile: combined indicator dots (Islamic date + recurring + reminders) -->
+      <div v-if="day.islamicDate || recurringEvents.length > 0 || reminders.length > 0" class="xs:hidden mt-0.5 flex gap-0.5 items-center">
         <span
           v-if="day.islamicDate"
           class="w-1.5 h-1.5 rounded-full shrink-0"
@@ -56,7 +57,13 @@ function displayDay(num) {
           }"
         />
         <span
-          v-for="r in reminders.slice(0, 3)"
+          v-for="e in recurringEvents.slice(0, 2)"
+          :key="e.id"
+          class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"
+          :title="e.title"
+        />
+        <span
+          v-for="r in reminders.slice(0, 2)"
           :key="r.id"
           class="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0"
           :title="r.title"
@@ -77,16 +84,22 @@ function displayDay(num) {
         </span>
       </div>
 
-      <!-- Reminder indicators (desktop only, mobile dots are above) -->
-      <div v-if="reminders.length > 0" class="hidden xs:flex mt-1 gap-0.5">
+      <!-- Event/reminder indicators (desktop only, mobile dots are above) -->
+      <div v-if="recurringEvents.length > 0 || reminders.length > 0" class="hidden xs:flex mt-1 gap-0.5">
+        <span
+          v-for="e in recurringEvents.slice(0, 3)"
+          :key="e.id"
+          class="w-1.5 h-1.5 rounded-full bg-amber-500"
+          :title="e.title"
+        />
         <span
           v-for="r in reminders.slice(0, 3)"
           :key="r.id"
           class="w-1.5 h-1.5 rounded-full bg-sky-500"
           :title="r.title"
         />
-        <span v-if="reminders.length > 3" class="text-[10px] text-slate-400">
-          +{{ reminders.length - 3 }}
+        <span v-if="recurringEvents.length + reminders.length > 3" class="text-[10px] text-slate-400">
+          +{{ recurringEvents.length + reminders.length - 3 }}
         </span>
       </div>
 
