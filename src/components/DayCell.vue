@@ -44,17 +44,25 @@ function displayDay(num) {
         </span>
       </div>
 
-      <!-- Islamic date indicator dot (mobile only, when label is hidden) -->
-      <div v-if="day.islamicDate" class="xs:hidden mt-0.5">
+      <!-- Mobile: combined indicator dots (Islamic date + reminders) -->
+      <div v-if="day.islamicDate || reminders.length > 0" class="xs:hidden mt-0.5 flex gap-0.5 items-center">
         <span
-          class="w-2 h-2 rounded-full inline-block"
+          v-if="day.islamicDate"
+          class="w-1.5 h-1.5 rounded-full shrink-0"
           :class="{
             'bg-emerald-500': day.islamicDate.color === 'emerald',
             'bg-amber-500': day.islamicDate.color === 'amber',
             'bg-teal-500': day.islamicDate.color === 'teal',
           }"
         />
+        <span
+          v-for="r in reminders.slice(0, 3)"
+          :key="r.id"
+          class="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0"
+          :title="r.title"
+        />
       </div>
+
       <!-- Islamic date label (hidden on very small screens) -->
       <div v-if="day.islamicDate" class="hidden xs:block mt-1">
         <span
@@ -69,12 +77,12 @@ function displayDay(num) {
         </span>
       </div>
 
-      <!-- Reminder indicators -->
-      <div v-if="reminders.length > 0" class="mt-1 flex gap-0.5">
+      <!-- Reminder indicators (desktop only, mobile dots are above) -->
+      <div v-if="reminders.length > 0" class="hidden xs:flex mt-1 gap-0.5">
         <span
           v-for="r in reminders.slice(0, 3)"
           :key="r.id"
-          class="w-1.5 h-1.5 rounded-full bg-teal-500"
+          class="w-1.5 h-1.5 rounded-full bg-sky-500"
           :title="r.title"
         />
         <span v-if="reminders.length > 3" class="text-[10px] text-slate-400">

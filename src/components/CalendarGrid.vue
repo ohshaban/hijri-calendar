@@ -23,6 +23,7 @@ const selectedDay = ref(props.todayDay > 0 ? props.todayDay - 1 : -1)
 const gridFocused = ref(false)
 const gridEl = ref(null)
 const pendingEdge = ref(null)
+const pendingSelectDay = ref(null)
 
 const realDays = computed(() => props.days.filter(d => !d.empty))
 
@@ -61,7 +62,11 @@ watch([() => props.currentMonth, () => props.currentYear], (newVal, oldVal) => {
   else slideDirection.value = 'prev'
 
   nextTick(() => {
-    if (pendingEdge.value === 'last') {
+    if (pendingSelectDay.value !== null) {
+      const idx = realDays.value.findIndex(d => d.day === pendingSelectDay.value)
+      selectedDay.value = idx >= 0 ? idx : 0
+      pendingSelectDay.value = null
+    } else if (pendingEdge.value === 'last') {
       selectedDay.value = realDays.value.length - 1
     } else if (pendingEdge.value === 'first') {
       selectedDay.value = 0
@@ -174,11 +179,19 @@ function isSelected(day) {
 }
 
 function selectDayByNumber(dayNum) {
-  const idx = realDays.value.findIndex(d => d.day === dayNum)
-  if (idx >= 0) {
-    selectedDay.value = idx
+  // Set pending so the watcher picks it up if a month change is in flight
+  pendingSelectDay.value = dayNum
+  // Also try to select immediately (for same-month navigations)
+  nextTick(() => {
+    if (pendingSelectDay.value === dayNum) {
+      const idx = realDays.value.findIndex(d => d.day === dayNum)
+      if (idx >= 0) {
+        selectedDay.value = idx
+        pendingSelectDay.value = null
+      }
+    }
     gridEl.value?.focus()
-  }
+  })
 }
 
 defineExpose({ refocus, selectDayByNumber })
