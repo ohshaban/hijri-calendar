@@ -91,6 +91,10 @@ export async function createRecurringEvent(data) {
   return request('/recurring', { method: 'POST', body: JSON.stringify(data) })
 }
 
+export async function updateRecurringEvent(id, data) {
+  return request(`/recurring/${id}`, { method: 'PUT', body: JSON.stringify(data) })
+}
+
 export async function deleteRecurringEvent(id) {
   return request(`/recurring/${id}`, { method: 'DELETE' })
 }

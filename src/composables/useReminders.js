@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import {
   getReminders, createReminder, updateReminder, deleteReminder, clearPastReminders,
-  getRecurringEvents, createRecurringEvent, deleteRecurringEvent
+  getRecurringEvents, createRecurringEvent, updateRecurringEvent, deleteRecurringEvent
 } from '../utils/api.js'
 
 export function useReminders() {
@@ -103,6 +103,22 @@ export function useReminders() {
     }
   }
 
+  async function editRecurringEvent(id, data) {
+    loading.value = true
+    error.value = ''
+    try {
+      const result = await updateRecurringEvent(id, data)
+      const idx = recurringEvents.value.findIndex(e => e.id === id)
+      if (idx >= 0) recurringEvents.value[idx] = result.recurringEvent
+      return true
+    } catch (err) {
+      error.value = err.error || 'Failed to update recurring event'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function removeRecurringEvent(id) {
     error.value = ''
     try {
@@ -118,6 +134,6 @@ export function useReminders() {
   return {
     reminders, recurringEvents, loading, error,
     fetchReminders, addReminder, editReminder, removeReminder, clearPast,
-    fetchRecurringEvents, addRecurringEvent, removeRecurringEvent
+    fetchRecurringEvents, addRecurringEvent, editRecurringEvent, removeRecurringEvent
   }
 }

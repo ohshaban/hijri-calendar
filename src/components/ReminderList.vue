@@ -24,11 +24,18 @@ const pastReminders = computed(() => {
 const now = Math.floor(Date.now() / 1000)
 const showPast = ref(false)
 
-// Edit state
+// Edit state for one-time reminders
 const editingId = ref(null)
 const editTitle = ref('')
 const editDescription = ref('')
 const editTime = ref('')
+
+// Edit state for recurring events
+const editingRecurringId = ref(null)
+const editRecTitle = ref('')
+const editRecDescription = ref('')
+const editRecTime = ref('')
+const editRecDaysBefore = ref(0)
 
 function startEdit(r) {
   editingId.value = r.id
@@ -93,6 +100,34 @@ async function handleClearPast() {
   if (ok) toast.success(t('pastCleared'))
 }
 
+function startEditRecurring(e) {
+  editingRecurringId.value = e.id
+  editRecTitle.value = e.title
+  editRecDescription.value = e.description || ''
+  editRecTime.value = e.remind_time || '09:00'
+  editRecDaysBefore.value = e.remind_days_before || 0
+}
+
+function cancelEditRecurring() {
+  editingRecurringId.value = null
+}
+
+async function saveEditRecurring(e) {
+  if (!editRecTitle.value.trim()) return
+  const ok = await props.reminderState.editRecurringEvent(e.id, {
+    title: editRecTitle.value.trim(),
+    description: editRecDescription.value.trim(),
+    remindTime: editRecTime.value,
+    remindDaysBefore: editRecDaysBefore.value,
+  })
+  if (ok) {
+    toast.success(t('reminderUpdated'))
+    editingRecurringId.value = null
+  } else {
+    toast.error(props.reminderState.error.value)
+  }
+}
+
 async function handleDeleteRecurring(id) {
   if (!confirm(t('confirmDelete'))) return
   const ok = await props.reminderState.removeRecurringEvent(id)
@@ -135,27 +170,55 @@ async function handleDeleteRecurring(id) {
             <div
               v-for="e in reminderState.recurringEvents.value"
               :key="e.id"
-              class="p-3 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-900/10 flex items-start justify-between gap-3"
+              class="p-3 rounded-lg border border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-900/10"
             >
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <p class="font-medium text-sm truncate">{{ e.title }}</p>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
-                    {{ t('annualReminder') }}
-                  </span>
+              <!-- Edit form for recurring event -->
+              <div v-if="editingRecurringId === e.id" class="space-y-2">
+                <input v-model="editRecTitle" type="text" maxlength="200" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" :placeholder="t('title')" />
+                <textarea v-model="editRecDescription" rows="2" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm resize-none" :placeholder="t('description')" />
+                <input v-model="editRecTime" type="time" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" dir="ltr" />
+                <select v-model="editRecDaysBefore" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm">
+                  <option :value="0">{{ t('onTheDay') }}</option>
+                  <option :value="1">1 {{ lang === 'ar' ? 'يوم قبل' : 'day before' }}</option>
+                  <option :value="3">3 {{ t('daysBeforeLabel') }}</option>
+                  <option :value="7">7 {{ t('daysBeforeLabel') }}</option>
+                  <option :value="10">10 {{ t('daysBeforeLabel') }}</option>
+                </select>
+                <div class="flex gap-2">
+                  <button @click="cancelEditRecurring" class="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-700">{{ t('cancel') }}</button>
+                  <button @click="saveEditRecurring(e)" :disabled="!editRecTitle.trim()" class="flex-1 px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50 text-xs font-medium">{{ t('save') }}</button>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">{{ formatHijriMonthDay(e.hijri_month, e.hijri_day) }}</p>
-                <p class="text-xs text-slate-400 dark:text-slate-500">{{ t('originYear') }}: {{ e.origin_year }} {{ lang === 'ar' ? 'هـ' : 'AH' }} · {{ formatTime12h(e.remind_time) }}</p>
               </div>
-              <button
-                @click="handleDeleteRecurring(e.id)"
-                class="shrink-0 p-1.5 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
-                :title="t('deleteRecurring')"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
+              <!-- Display mode -->
+              <div v-else class="flex items-start justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <p class="font-medium text-sm truncate">{{ e.title }}</p>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">
+                      {{ t('annualReminder') }}
+                    </span>
+                  </div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ formatHijriMonthDay(e.hijri_month, e.hijri_day) }}</p>
+                  <p class="text-xs text-slate-400 dark:text-slate-500">
+                    {{ t('originYear') }}: {{ e.origin_year }} {{ lang === 'ar' ? 'هـ' : 'AH' }} · {{ formatTime12h(e.remind_time) }}
+                    <template v-if="e.remind_days_before > 0"> · {{ e.remind_days_before }} {{ t('daysBeforeLabel') }}</template>
+                  </p>
+                </div>
+                <div class="flex gap-1 shrink-0">
+                  <button @click="startEditRecurring(e)" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-600" :title="t('edit')">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </button>
+                  <button
+                    @click="handleDeleteRecurring(e.id)"
+                    class="shrink-0 p-1.5 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
+                    :title="t('deleteRecurring')"
+                  >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

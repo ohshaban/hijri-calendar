@@ -78,6 +78,10 @@ const translations = {
     goToGregorian: 'Go to Gregorian date',
     gregorianLookup: 'Enter a Gregorian date',
     go: 'Go',
+    remindDaysBefore: 'Remind me',
+    onTheDay: 'On the day',
+    daysBefore: '{n} days before',
+    daysBeforeLabel: 'days before',
   },
   ar: {
     appName: 'تقويم هلال',
@@ -135,5 +139,9 @@ const translations = {
     goToGregorian: 'انتقل لتاريخ ميلادي',
     gregorianLookup: 'أدخل تاريخ ميلادي',
     go: 'انتقل',
+    remindDaysBefore: 'ذكّرني',
+    onTheDay: 'في نفس اليوم',
+    daysBefore: 'قبل {n} أيام',
+    daysBeforeLabel: 'أيام قبل',
   }
 }

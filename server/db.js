@@ -76,4 +76,8 @@ try {
   db.exec(`ALTER TABLE recurring_events ADD COLUMN timezone TEXT DEFAULT 'UTC'`)
 } catch (e) { /* Column already exists */ }
 
+try {
+  db.exec(`ALTER TABLE recurring_events ADD COLUMN remind_days_before INTEGER DEFAULT 0`)
+} catch (e) { /* Column already exists */ }
+
 export default db

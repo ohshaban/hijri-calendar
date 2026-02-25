@@ -91,7 +91,13 @@ export function generateReminderForEvent(event) {
 
       const [hours, minutes] = (event.remind_time || '09:00').split(':').map(Number)
       const remindDate = dateInTimezone(gregDate, hours, minutes, event.timezone || 'UTC')
-      const remindAtTs = Math.floor(remindDate.getTime() / 1000)
+      let remindAtTs = Math.floor(remindDate.getTime() / 1000)
+
+      // Shift reminder back by remind_days_before
+      const daysBefore = event.remind_days_before || 0
+      if (daysBefore > 0) {
+        remindAtTs -= daysBefore * 86400
+      }
 
       const id = randomUUID()
       const now = Math.floor(Date.now() / 1000)
@@ -101,7 +107,7 @@ export function generateReminderForEvent(event) {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).run(id, event.email, event.title, event.description || '', hijriDateStr, gregDateStr, remindAtTs, now, event.id)
 
-      console.log(`Generated recurring reminder ${id} for event ${event.id} on ${hijriDateStr}`)
+      console.log(`Generated recurring reminder ${id} for event ${event.id} on ${hijriDateStr} (${daysBefore} days before)`)
     } catch (err) {
       console.error(`Error generating reminder for recurring event ${event.id}:`, err)
     }
@@ -130,7 +136,13 @@ async function generateRecurringReminders() {
 
       const [hours, minutes] = (event.remind_time || '09:00').split(':').map(Number)
       const remindDate = dateInTimezone(gregDate, hours, minutes, event.timezone || 'UTC')
-      const remindAtTs = Math.floor(remindDate.getTime() / 1000)
+      let remindAtTs = Math.floor(remindDate.getTime() / 1000)
+
+      // Shift reminder back by remind_days_before
+      const daysBefore = event.remind_days_before || 0
+      if (daysBefore > 0) {
+        remindAtTs -= daysBefore * 86400
+      }
 
       const id = randomUUID()
       const now = Math.floor(Date.now() / 1000)
@@ -140,7 +152,7 @@ async function generateRecurringReminders() {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).run(id, event.email, event.title, event.description || '', hijriDateStr, gregDateStr, remindAtTs, now, event.id)
 
-      console.log(`Generated recurring reminder ${id} for event ${event.id} on ${hijriDateStr}`)
+      console.log(`Generated recurring reminder ${id} for event ${event.id} on ${hijriDateStr} (${daysBefore} days before)`)
     }
   } catch (err) {
     console.error('Error generating recurring reminders:', err)

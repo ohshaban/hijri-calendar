@@ -20,6 +20,7 @@ const title = ref('')
 const description = ref('')
 const remindTime = ref('09:00')
 const isRecurring = ref(false)
+const remindDaysBefore = ref(0)
 
 const hijriDateStr = `${props.year}-${String(props.month).padStart(2, '0')}-${String(props.day.day).padStart(2, '0')}`
 const gregDate = toGregorian(props.year, props.month, props.day.day)
@@ -37,6 +38,7 @@ async function handleSave() {
       originYear: props.year,
       remindTime: remindTime.value,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      remindDaysBefore: remindDaysBefore.value,
     })
 
     if (ok) {
@@ -134,6 +136,21 @@ async function handleSave() {
               class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
               dir="ltr"
             />
+          </div>
+
+          <!-- Advance reminder for recurring events -->
+          <div v-if="isRecurring">
+            <label class="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1 block">{{ t('remindDaysBefore') }}</label>
+            <select
+              v-model="remindDaysBefore"
+              class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+            >
+              <option :value="0">{{ t('onTheDay') }}</option>
+              <option :value="1">1 {{ lang === 'ar' ? 'يوم قبل' : 'day before' }}</option>
+              <option :value="3">3 {{ t('daysBeforeLabel') }}</option>
+              <option :value="7">7 {{ t('daysBeforeLabel') }}</option>
+              <option :value="10">10 {{ t('daysBeforeLabel') }}</option>
+            </select>
           </div>
         </div>
 
