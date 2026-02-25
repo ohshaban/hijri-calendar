@@ -82,8 +82,8 @@ watch([() => props.currentMonth, () => props.currentYear], (newVal, oldVal) => {
 
 function dayReminders(day) {
   if (!day || day.empty || !props.reminders) return []
-  const hijriDate = `${props.currentYear}-${String(props.currentMonth).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`
-  return props.reminders.filter(r => r.hijri_date === hijriDate && !r.cancelled)
+  const gregStr = day.gregorianDate.toISOString().split('T')[0]
+  return props.reminders.filter(r => r.gregorian_date === gregStr && !r.cancelled)
 }
 
 function dayRecurringEvents(day) {
@@ -271,7 +271,7 @@ defineExpose({ refocus, selectDayByNumber })
       <!-- Recurring events for this day -->
       <div v-if="selectedDayData.recurringEvents.length > 0" class="space-y-1">
         <div v-for="e in selectedDayData.recurringEvents" :key="e.id" class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
           <span class="text-xs text-slate-600 dark:text-slate-400 truncate">{{ e.title }}</span>
         </div>
       </div>

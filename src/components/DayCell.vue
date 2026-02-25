@@ -59,7 +59,7 @@ function displayDay(num) {
         <span
           v-for="e in recurringEvents.slice(0, 2)"
           :key="e.id"
-          class="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"
+          class="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0"
           :title="e.title"
         />
         <span
@@ -89,7 +89,7 @@ function displayDay(num) {
         <span
           v-for="e in recurringEvents.slice(0, 3)"
           :key="e.id"
-          class="w-1.5 h-1.5 rounded-full bg-amber-500"
+          class="w-1.5 h-1.5 rounded-full bg-rose-500"
           :title="e.title"
         />
         <span

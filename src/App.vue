@@ -114,7 +114,10 @@ async function onSignOut() {
 }
 
 watch(() => auth.isAuthenticated.value, (val) => {
-  if (val) reminderState.fetchReminders()
+  if (val) {
+    reminderState.fetchReminders()
+    reminderState.fetchRecurringEvents()
+  }
 })
 </script>
 
