@@ -54,10 +54,17 @@ async function saveEdit(r) {
 
 function formatDate(ts) {
   const d = new Date(ts * 1000)
-  return d.toLocaleDateString(props.lang === 'ar' ? 'ar-SA' : 'en-US', {
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit',
-  })
+  const locale = props.lang === 'ar' ? 'ar-SA' : 'en-US'
+  const date = d.toLocaleDateString(locale, { year: 'numeric', month: 'long', day: 'numeric' })
+  const time = d.toLocaleTimeString(locale, { hour: 'numeric', minute: '2-digit', hour12: true })
+  return `${date} · ${time}`
+}
+
+function formatTime12h(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number)
+  const period = h >= 12 ? 'PM' : 'AM'
+  const hour = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${hour}:${String(m).padStart(2, '0')} ${period}`
 }
 
 function formatHijriMonthDay(month, day) {
@@ -117,7 +124,7 @@ async function handleDeleteRecurring(id) {
                   </span>
                 </div>
                 <p class="text-xs text-slate-500 dark:text-slate-400">{{ formatHijriMonthDay(e.hijri_month, e.hijri_day) }}</p>
-                <p class="text-xs text-slate-400 dark:text-slate-500">{{ t('originYear') }}: {{ e.origin_year }} {{ lang === 'ar' ? 'هـ' : 'AH' }} · {{ e.remind_time }}</p>
+                <p class="text-xs text-slate-400 dark:text-slate-500">{{ t('originYear') }}: {{ e.origin_year }} {{ lang === 'ar' ? 'هـ' : 'AH' }} · {{ formatTime12h(e.remind_time) }}</p>
               </div>
               <button
                 @click="handleDeleteRecurring(e.id)"

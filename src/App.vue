@@ -96,15 +96,15 @@ watch(() => auth.isAuthenticated.value, (val) => {
         <div class="flex items-center gap-1 sm:gap-2">
           <button
             @click="toggleLang"
-            class="p-2 sm:px-3 sm:py-1.5 text-sm rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium"
+            class="w-9 h-9 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 flex items-center justify-center text-sm rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium"
             :title="t('language')"
           >
-            <span class="sm:hidden">{{ lang === 'en' ? 'ع' : 'A' }}</span>
+            <span class="sm:hidden">{{ lang === 'en' ? 'ع' : 'En' }}</span>
             <span class="hidden sm:inline">{{ lang === 'en' ? 'عربي' : 'EN' }}</span>
           </button>
           <button
             @click="toggleDark"
-            class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
+            class="w-9 h-9 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
             :title="dark ? t('lightMode') : t('darkMode')"
           >
             <span v-if="dark" class="text-lg leading-none">☀️</span>
@@ -112,7 +112,7 @@ watch(() => auth.isAuthenticated.value, (val) => {
           </button>
           <button
             @click="onShowReminders"
-            class="p-2 sm:px-3 sm:py-1.5 text-sm rounded-lg bg-teal-600 text-white hover:bg-teal-700 font-medium"
+            class="w-9 h-9 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 flex items-center justify-center text-sm rounded-lg bg-teal-600 text-white hover:bg-teal-700 font-medium"
             :title="t('myReminders')"
           >
             <svg class="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +123,7 @@ watch(() => auth.isAuthenticated.value, (val) => {
           <button
             v-if="!auth.isAuthenticated.value"
             @click="showAuthModal = true"
-            class="p-2 sm:px-3 sm:py-1.5 text-sm rounded-lg border border-teal-600 text-teal-600 dark:text-teal-400 dark:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 font-medium"
+            class="w-9 h-9 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 flex items-center justify-center text-sm rounded-lg border border-teal-600 text-teal-600 dark:text-teal-400 dark:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/30 font-medium"
             :title="t('signIn')"
           >
             <svg class="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -134,7 +134,7 @@ watch(() => auth.isAuthenticated.value, (val) => {
           <button
             v-else
             @click="onSignOut"
-            class="p-2 sm:px-3 sm:py-1.5 text-sm rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
+            class="w-9 h-9 sm:w-auto sm:h-auto sm:px-3 sm:py-1.5 flex items-center justify-center text-sm rounded-lg border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
             :title="t('signOut')"
           >
             <svg class="w-5 h-5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">

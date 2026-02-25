@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch, nextTick, onMounted } from 'vue'
-import { getDayNames } from '../utils/hijri.js'
+import { getDayNames, formatHijriDate } from '../utils/hijri.js'
 import { useLang } from '../utils/i18n.js'
 import DayCell from './DayCell.vue'
 
@@ -25,6 +25,19 @@ const gridEl = ref(null)
 const pendingEdge = ref(null)
 
 const realDays = computed(() => props.days.filter(d => !d.empty))
+
+// Data for the mobile detail panel
+const selectedDayData = computed(() => {
+  if (selectedDay.value < 0) return null
+  const day = realDays.value[selectedDay.value]
+  if (!day) return null
+  return {
+    day,
+    reminders: dayReminders(day),
+    hijriFormatted: formatHijriDate(props.currentYear, props.currentMonth, day.day, props.lang),
+  }
+})
+
 const slideDirection = ref('next')
 const gridKey = computed(() => `${props.currentYear}-${props.currentMonth}`)
 // Track whether grid had focus before transition so we can restore it after
@@ -201,6 +214,39 @@ defineExpose({ refocus })
           />
         </div>
       </Transition>
+    </div>
+
+    <!-- Mobile detail panel for selected day (visible below xs breakpoint) -->
+    <div v-if="selectedDayData" class="xs:hidden border-t border-slate-200 dark:border-slate-700 px-3 py-2.5 bg-slate-50/80 dark:bg-slate-800/50">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-semibold text-slate-700 dark:text-slate-200">{{ selectedDayData.hijriFormatted }}</span>
+        <button
+          @click="emit('day-click', selectedDayData.day)"
+          class="text-[10px] font-medium text-teal-600 dark:text-teal-400 flex items-center gap-0.5"
+        >
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          {{ t('createReminder') }}
+        </button>
+      </div>
+      <!-- Islamic event -->
+      <div v-if="selectedDayData.day.islamicDate" class="mb-1">
+        <span
+          class="text-[10px] font-medium px-1.5 py-0.5 rounded-full inline-block"
+          :class="{
+            'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400': selectedDayData.day.islamicDate.color === 'emerald',
+            'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400': selectedDayData.day.islamicDate.color === 'amber',
+            'bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-400': selectedDayData.day.islamicDate.color === 'teal',
+          }"
+        >{{ lang === 'ar' ? selectedDayData.day.islamicDate.ar : selectedDayData.day.islamicDate.en }}</span>
+      </div>
+      <!-- Reminders for this day -->
+      <div v-if="selectedDayData.reminders.length > 0" class="space-y-1">
+        <div v-for="r in selectedDayData.reminders" :key="r.id" class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0" />
+          <span class="text-xs text-slate-600 dark:text-slate-400 truncate">{{ r.title }}</span>
+        </div>
+      </div>
+      <p v-else-if="!selectedDayData.day.islamicDate" class="text-[11px] text-slate-400 dark:text-slate-500">{{ t('noReminders') }}</p>
     </div>
 
     <!-- Keyboard hint bar (desktop only, shown when grid has DOM focus) -->

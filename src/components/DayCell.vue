@@ -71,10 +71,11 @@ function displayDay(num) {
         </span>
       </div>
 
-      <!-- Tap/click hint on selected cell (hidden on very small screens) -->
-      <div v-if="selected" class="hidden xs:block absolute bottom-1 inset-x-0 text-center">
-        <span class="text-[9px] sm:text-[10px] text-teal-600/70 dark:text-teal-400/60">
-          {{ t('tapToRemind') }}
+      <!-- Tap/click hint on selected cell -->
+      <div v-if="selected" class="absolute bottom-0.5 xs:bottom-1 inset-x-0 text-center">
+        <span class="inline-flex items-center gap-0.5 text-teal-600/70 dark:text-teal-400/60">
+          <svg class="w-2.5 h-2.5 xs:w-3 xs:h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" /></svg>
+          <span class="hidden xs:inline text-[9px] sm:text-[10px]">{{ t('tapToRemind') }}</span>
         </span>
       </div>
     </template>
