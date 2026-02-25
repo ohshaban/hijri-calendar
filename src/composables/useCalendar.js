@@ -81,6 +81,11 @@ export function useCalendar() {
     currentYear.value = year
   }
 
+  function goToHijriDate(year, month) {
+    currentYear.value = year
+    currentMonth.value = month
+  }
+
   return {
     currentYear,
     currentMonth,
@@ -92,5 +97,6 @@ export function useCalendar() {
     goToToday,
     setMonth,
     setYear,
+    goToHijriDate,
   }
 }

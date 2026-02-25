@@ -75,6 +75,9 @@ const translations = {
     pastReminders: 'Past',
     clearPast: 'Clear past',
     pastCleared: 'Past reminders cleared',
+    goToGregorian: 'Go to Gregorian date',
+    gregorianLookup: 'Enter a Gregorian date',
+    go: 'Go',
   },
   ar: {
     appName: 'تقويم هلال',
@@ -129,5 +132,8 @@ const translations = {
     pastReminders: 'السابقة',
     clearPast: 'مسح السابقة',
     pastCleared: 'تم مسح التذكيرات السابقة',
+    goToGregorian: 'انتقل لتاريخ ميلادي',
+    gregorianLookup: 'أدخل تاريخ ميلادي',
+    go: 'انتقل',
   }
 }

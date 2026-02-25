@@ -4,6 +4,7 @@ import { useLang } from './utils/i18n.js'
 import { useCalendar } from './composables/useCalendar.js'
 import { useAuth } from './composables/useAuth.js'
 import { useReminders } from './composables/useReminders.js'
+import { toHijri, formatHijriDate } from './utils/hijri.js'
 import CalendarHeader from './components/CalendarHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import TodayInfo from './components/TodayInfo.vue'
@@ -18,6 +19,9 @@ const auth = useAuth()
 const reminderState = useReminders()
 
 const dark = ref(document.documentElement.classList.contains('dark'))
+const showDateLookup = ref(false)
+const gregorianInput = ref('')
+const lookupResult = ref(null)
 const showAuthModal = ref(false)
 const showReminderModal = ref(false)
 const showReminderList = ref(false)
@@ -32,6 +36,30 @@ function toggleDark() {
 
 function toggleLang() {
   setLang(lang.value === 'en' ? 'ar' : 'en')
+}
+
+function handleDateLookup() {
+  if (!gregorianInput.value) return
+  try {
+    const date = new Date(gregorianInput.value + 'T12:00:00')
+    if (isNaN(date.getTime())) return
+    const hijri = toHijri(date)
+    lookupResult.value = {
+      formatted: formatHijriDate(hijri.year, hijri.month, hijri.day, lang.value),
+      year: hijri.year,
+      month: hijri.month,
+    }
+  } catch {
+    lookupResult.value = null
+  }
+}
+
+function goToLookupDate() {
+  if (!lookupResult.value) return
+  calendar.goToHijriDate(lookupResult.value.year, lookupResult.value.month)
+  showDateLookup.value = false
+  lookupResult.value = null
+  gregorianInput.value = ''
 }
 
 function onDayClick(day) {
@@ -159,6 +187,39 @@ watch(() => auth.isAuthenticated.value, (val) => {
         @set-month="calendar.setMonth"
         @set-year="calendar.setYear"
       />
+
+      <!-- Gregorian date lookup -->
+      <div class="flex items-center gap-2 mb-3">
+        <button
+          @click="showDateLookup = !showDateLookup; lookupResult = null"
+          class="text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 flex items-center gap-1"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+          {{ t('goToGregorian') }}
+        </button>
+      </div>
+      <div v-if="showDateLookup" class="mb-4 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+        <label class="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-1.5">{{ t('gregorianLookup') }}</label>
+        <div class="flex gap-2">
+          <input
+            v-model="gregorianInput"
+            type="date"
+            class="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+            dir="ltr"
+            @change="handleDateLookup"
+          />
+          <button
+            v-if="lookupResult"
+            @click="goToLookupDate"
+            class="px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 text-xs font-medium"
+          >
+            {{ t('go') }}
+          </button>
+        </div>
+        <p v-if="lookupResult" class="mt-2 text-sm font-medium text-teal-700 dark:text-teal-400">
+          {{ lookupResult.formatted }}
+        </p>
+      </div>
 
       <CalendarGrid
         ref="calendarGrid"
