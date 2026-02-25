@@ -82,13 +82,18 @@ watch([() => props.currentMonth, () => props.currentYear], (newVal, oldVal) => {
 
 function dayReminders(day) {
   if (!day || day.empty || !props.reminders) return []
-  const gregStr = day.gregorianDate.toISOString().split('T')[0]
-  return props.reminders.filter(r => r.gregorian_date === gregStr && !r.cancelled)
+  const hijriDate = `${props.currentYear}-${String(props.currentMonth).padStart(2, '0')}-${String(day.day).padStart(2, '0')}`
+  return props.reminders.filter(r => r.hijri_date === hijriDate && !r.cancelled)
 }
 
 function dayRecurringEvents(day) {
   if (!day || day.empty || !props.recurringEvents) return []
-  return props.recurringEvents.filter(e => e.hijri_month === props.currentMonth && e.hijri_day === day.day && e.active)
+  return props.recurringEvents.filter(e =>
+    e.hijri_month === props.currentMonth &&
+    e.hijri_day === day.day &&
+    e.active &&
+    props.currentYear >= e.origin_year
+  )
 }
 
 function handleGridKeydown(e) {

@@ -92,30 +92,32 @@ export function generateReminderForEvent(event) {
       const targetYear = findNextOccurrenceYear(event.hijri_month, event.hijri_day, uqFn)
       const clampedDay = clampDay(targetYear, event.hijri_month, event.hijri_day, uqFn)
 
-      // Check for duplicate
-      const existing = db.prepare(
-        `SELECT id FROM reminders WHERE recurring_event_id = ? AND hijri_date LIKE ? AND cancelled = 0`
-      ).get(event.id, `${targetYear}-%`)
-
-      if (existing) return
-
-      const hijriDateStr = `${targetYear}-${String(event.hijri_month).padStart(2, '0')}-${String(clampedDay).padStart(2, '0')}`
       const gregDate = uqFn(targetYear, event.hijri_month, clampedDay).date
       const gregDateStr = gregDate.toISOString().split('T')[0]
 
-      const [hours, minutes] = (event.remind_time || '09:00').split(':').map(Number)
-      const remindDate = dateInTimezone(gregDate, hours, minutes, event.timezone || 'UTC')
-      let remindAtTs = Math.floor(remindDate.getTime() / 1000)
+      // Check for duplicate using the event's Gregorian date (stable across day shifts)
+      const existing = db.prepare(
+        `SELECT id FROM reminders WHERE recurring_event_id = ? AND gregorian_date >= ? AND gregorian_date <= ? AND cancelled = 0`
+      ).get(event.id, gregDateStr.slice(0, 4) + '-01-01', gregDateStr.slice(0, 4) + '-12-31')
 
-      // Shift reminder back by remind_days_before
+      if (existing) return
+
       const daysBefore = event.remind_days_before || 0
-      if (daysBefore > 0) {
-        remindAtTs -= daysBefore * 86400
-      }
 
-      // Compute the actual Gregorian date the reminder fires on
-      const remindGregDate = new Date(remindAtTs * 1000)
+      // Compute the actual remind date (shifted back by N days)
+      const remindGregDate = new Date(gregDate)
+      if (daysBefore > 0) {
+        remindGregDate.setDate(remindGregDate.getDate() - daysBefore)
+      }
       const remindGregDateStr = remindGregDate.toISOString().split('T')[0]
+
+      // Convert remind Gregorian date to Hijri for calendar grid placement
+      const remindHijri = uqFn(remindGregDate)
+      const remindHijriDateStr = `${remindHijri.hy}-${String(remindHijri.hm).padStart(2, '0')}-${String(remindHijri.hd).padStart(2, '0')}`
+
+      const [hours, minutes] = (event.remind_time || '09:00').split(':').map(Number)
+      const remindDate = dateInTimezone(remindGregDate, hours, minutes, event.timezone || 'UTC')
+      const remindAtTs = Math.floor(remindDate.getTime() / 1000)
 
       // Build title: add "in N day(s)" suffix for advance reminders
       let reminderTitle = event.title
@@ -129,9 +131,9 @@ export function generateReminderForEvent(event) {
       db.prepare(
         `INSERT INTO reminders (id, email, title, description, hijri_date, gregorian_date, remind_at, created_at, recurring_event_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(id, event.email, reminderTitle, event.description || '', hijriDateStr, remindGregDateStr, remindAtTs, now, event.id)
+      ).run(id, event.email, reminderTitle, event.description || '', remindHijriDateStr, remindGregDateStr, remindAtTs, now, event.id)
 
-      console.log(`Generated recurring reminder ${id} for event ${event.id} on ${hijriDateStr} (${daysBefore} days before)`)
+      console.log(`Generated recurring reminder ${id} for event ${event.id} on ${remindHijriDateStr} (${daysBefore} days before)`)
     } catch (err) {
       console.error(`Error generating reminder for recurring event ${event.id}:`, err)
     }
@@ -147,30 +149,32 @@ async function generateRecurringReminders() {
       const targetYear = findNextOccurrenceYear(event.hijri_month, event.hijri_day, uqFn)
       const clampedDay = clampDay(targetYear, event.hijri_month, event.hijri_day, uqFn)
 
-      // Check for existing reminder for this event + target year
-      const existing = db.prepare(
-        `SELECT id FROM reminders WHERE recurring_event_id = ? AND hijri_date LIKE ? AND cancelled = 0`
-      ).get(event.id, `${targetYear}-%`)
-
-      if (existing) continue
-
-      const hijriDateStr = `${targetYear}-${String(event.hijri_month).padStart(2, '0')}-${String(clampedDay).padStart(2, '0')}`
       const gregDate = uqFn(targetYear, event.hijri_month, clampedDay).date
       const gregDateStr = gregDate.toISOString().split('T')[0]
 
-      const [hours, minutes] = (event.remind_time || '09:00').split(':').map(Number)
-      const remindDate = dateInTimezone(gregDate, hours, minutes, event.timezone || 'UTC')
-      let remindAtTs = Math.floor(remindDate.getTime() / 1000)
+      // Check for existing reminder for this event in the same Gregorian year
+      const existing = db.prepare(
+        `SELECT id FROM reminders WHERE recurring_event_id = ? AND gregorian_date >= ? AND gregorian_date <= ? AND cancelled = 0`
+      ).get(event.id, gregDateStr.slice(0, 4) + '-01-01', gregDateStr.slice(0, 4) + '-12-31')
 
-      // Shift reminder back by remind_days_before
+      if (existing) continue
+
       const daysBefore = event.remind_days_before || 0
-      if (daysBefore > 0) {
-        remindAtTs -= daysBefore * 86400
-      }
 
-      // Compute the actual Gregorian date the reminder fires on
-      const remindGregDate = new Date(remindAtTs * 1000)
+      // Compute the actual remind date (shifted back by N days)
+      const remindGregDate = new Date(gregDate)
+      if (daysBefore > 0) {
+        remindGregDate.setDate(remindGregDate.getDate() - daysBefore)
+      }
       const remindGregDateStr = remindGregDate.toISOString().split('T')[0]
+
+      // Convert remind Gregorian date to Hijri for calendar grid placement
+      const remindHijri = uqFn(remindGregDate)
+      const remindHijriDateStr = `${remindHijri.hy}-${String(remindHijri.hm).padStart(2, '0')}-${String(remindHijri.hd).padStart(2, '0')}`
+
+      const [hours, minutes] = (event.remind_time || '09:00').split(':').map(Number)
+      const remindDate = dateInTimezone(remindGregDate, hours, minutes, event.timezone || 'UTC')
+      const remindAtTs = Math.floor(remindDate.getTime() / 1000)
 
       // Build title: add "in N day(s)" suffix for advance reminders
       let reminderTitle = event.title
@@ -184,9 +188,9 @@ async function generateRecurringReminders() {
       db.prepare(
         `INSERT INTO reminders (id, email, title, description, hijri_date, gregorian_date, remind_at, created_at, recurring_event_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-      ).run(id, event.email, reminderTitle, event.description || '', hijriDateStr, remindGregDateStr, remindAtTs, now, event.id)
+      ).run(id, event.email, reminderTitle, event.description || '', remindHijriDateStr, remindGregDateStr, remindAtTs, now, event.id)
 
-      console.log(`Generated recurring reminder ${id} for event ${event.id} on ${hijriDateStr} (${daysBefore} days before)`)
+      console.log(`Generated recurring reminder ${id} for event ${event.id} on ${remindHijriDateStr} (${daysBefore} days before)`)
     }
   } catch (err) {
     console.error('Error generating recurring reminders:', err)
