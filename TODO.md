@@ -34,39 +34,101 @@
 - Used Vite 7 + Tailwind v4 instead of Vite 4 + Tailwind 3 (newer, stable)
 - Added /api/auth/me endpoint (not in plan but useful for session checking)
 
-### Gaps to address
+### Previously resolved
+- ~~Resend domain verification~~, ~~Mobile header overflow~~, ~~Arabic numerals~~
+- ~~Toast notifications~~, ~~Loading skeleton~~, ~~Keyboard navigation~~, ~~Empty month padding~~
+- ~~Responsive cells~~, ~~Year range~~, ~~Month transitions~~, ~~PWA~~, ~~Timezone~~, ~~Reminder edit~~, ~~Delete confirmation~~
 
-#### P0 - Must fix
-1. ~~**Resend domain verification**~~: Fixed - domain verified, emails now send to any recipient.
+---
 
-2. ~~**Mobile header overflow**~~: Fixed - uses icon-only buttons on mobile, text on desktop.
+## New TODO List
 
-3. ~~**Arabic numerals in AR mode**~~: Fixed - `toArabicNumerals()` used for day numbers.
+### P0 — UX polish (quick wins, high impact)
 
-#### P1 - Should fix
-4. **SPA client-side routing**: Currently no Vue Router. Direct URL access to paths
-   other than / will 404 then fallback via try_files. Not a problem now since it's a
-   single-page app, but could matter if we add routes.
+**1. Mobile selected-day detail panel**
+Show events and reminders for the selected day below the calendar grid on mobile.
+Currently on small screens, cells only show the Hijri number and reminder dots — no
+event names or details are visible. When a day is selected, render a panel beneath the
+grid listing: Islamic event label (if any), reminder titles, and recurring event matches.
+This gives mobile users a way to see what's on a day without opening a modal.
+- Files: `CalendarGrid.vue`, possibly a new `DayDetail.vue` component
+- Depends on: selected day state already exists in `CalendarGrid.vue`
 
-5. ~~**Error toast/notification system**~~: Fixed - global ToastContainer with useToast composable.
+**2. "Tap to remind" icon hint + mobile visibility**
+Replace the text-only "tap to set reminder" with a small tap/hand icon (inline SVG) +
+short label. Currently hidden below 480px via `hidden xs:block`. Make it visible on all
+screen sizes since mobile users need the hint most. Keep it compact — icon only on very
+small screens, icon + text on larger.
+- Files: `DayCell.vue`
 
-6. ~~**Loading skeleton**~~: Not needed - calendar data is computed synchronously, no loading state.
+**3. Consistent header button sizing on mobile**
+The dark mode and language toggle buttons use `p-2` while the reminders button uses
+`p-2 sm:px-3 sm:py-1.5`. Standardize all icon-only mobile buttons to the same
+dimensions (e.g. `w-9 h-9 flex items-center justify-center`). Also change the Arabic→
+English toggle label from "A" to "En" for clarity.
+- Files: `App.vue`
 
-7. ~~**Keyboard navigation**~~: Fixed - arrow keys navigate days, Enter opens reminder modal, focus ring on selected day.
+**4. Date/time formatting in My Reminders modal**
+Make formatting consistent across the reminder list:
+- Dates: use full month name (e.g. "25 February 2026" not "Feb 25, 2026")
+- Times: use 12-hour format everywhere (e.g. "9:00 AM" not "09:00")
+- Apply to both one-time reminders and recurring events
+- Files: `ReminderList.vue`
 
-8. ~~**Empty month padding**~~: Fixed - trailing empty cells fill the last row.
+### P1 — Features (medium effort, meaningful value)
 
-#### P2 - Nice to have
-9. ~~**Responsive calendar cells**~~: Fixed - hides Gregorian date and Islamic event labels below 480px (`xs` breakpoint), compact cell height on very small screens.
+**5. Expand year range to 1350–1550 AH**
+Covers ~100 years in each direction. Currently 1400–1500. Update the year dropdown in
+`CalendarHeader.vue`. May need to verify `@umalqura/core` supports years this far out —
+test edge cases at boundaries.
+- Files: `CalendarHeader.vue`
 
-10. ~~**Year range validation**~~: Fixed - expanded from 1440-1460 to 1400-1500 AH.
+**6. Categorize reminders: Recurring / Upcoming / Past**
+Restructure the My Reminders modal into three collapsible sections:
+- **Recurring Events** (existing section, keep as-is with amber styling)
+- **Upcoming** — unsent reminders where `remind_at > now`
+- **Past** — sent reminders, collapsed by default
+Add a "Clear past" button that bulk-deletes sent reminders to reduce clutter.
+Needs a new backend endpoint or batch-cancel approach.
+- Files: `ReminderList.vue`, possibly `server/routes/reminders.js` for bulk clear
 
-11. ~~**Animated month transitions**~~: Fixed - slide transition when navigating months, with RTL support.
+**7. Gregorian-to-Hijri date lookup**
+Add a small input (in the header or as a popover) where the user types or picks a
+Gregorian date and the calendar navigates to the corresponding Hijri month/day, with
+that day selected. Useful for "what Hijri date is my birthday?" type lookups.
+- Files: new `DateConverter.vue` component, `App.vue`, `useCalendar.js`
+- Uses: `toHijri()` from `hijri.js` already exists
 
-12. ~~**PWA support**~~: Fixed - web app manifest, service worker with network-first caching, Apple meta tags, installable on mobile.
+**8. Advance reminder for recurring events**
+Allow recurring events to send a reminder N days before the actual date (e.g. 1, 3, 7,
+or 10 days early). Add a `remind_days_before` column to `recurring_events`. The
+scheduler generates the reminder instance with `remind_at` shifted back by that many
+days. Frontend: add a dropdown in the recurring creation flow.
+- Files: `server/db.js` (migration), `server/routes/recurring.js`,
+  `server/services/scheduler.js`, `ReminderModal.vue`
 
-13. ~~**Timezone handling**~~: Fixed - recurring events store the user's IANA timezone and use it to compute correct UTC timestamps for generated reminders.
+**9. Edit recurring events**
+Currently recurring events can only be created and deleted. Add a PUT endpoint and
+inline edit UI (similar to one-time reminder editing) for title, description, remind
+time, and remind-days-before. Changing the remind time should regenerate the next unsent
+instance.
+- Files: `server/routes/recurring.js`, `ReminderList.vue`,
+  `src/composables/useReminders.js`, `src/utils/api.js`
 
-14. ~~**Reminder edit**~~: Fixed - inline edit form in reminder list with PUT endpoint, can update title, description, and time.
+### P2 — Nice to have (larger scope, lower urgency)
 
-15. ~~**Confirmation dialog for delete**~~: Fixed - confirm() prompt before deleting reminders and recurring events.
+**10. App info/footer menu**
+Add a small menu (footer link or "..." menu button in the header) with:
+- **Contact / Suggestions** — mailto link or link to a feedback form
+- **GitHub** — link to the repo (github.com/ohshaban/hijri-calendar)
+- **Support / Donate** — needs research into options (Buy Me a Coffee, Ko-fi, GitHub
+  Sponsors, Stripe link, etc.). Should be tasteful and non-intrusive. Consider what
+  works best for the target audience. This is its own sub-task:
+  - Research donation platforms (fees, payout, ease of setup)
+  - Choose one and integrate a simple link/button
+- Files: new `AppFooter.vue` or popover component, `App.vue`
+
+**11. SPA client-side routing**
+Currently no Vue Router. Direct URL access to paths other than `/` will 404 then
+fallback via `try_files`. Not a problem now since it's a single-page app, but could
+matter if we add features like `/convert` or deep-linking to a specific month.
