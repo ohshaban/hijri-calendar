@@ -9,11 +9,20 @@ const emit = defineEmits(['close'])
 const { t } = useLang()
 const toast = useToast()
 
-const sortedReminders = computed(() => {
-  return [...props.reminderState.reminders.value].sort((a, b) => a.remind_at - b.remind_at)
+const upcomingReminders = computed(() => {
+  return [...props.reminderState.reminders.value]
+    .filter(r => !r.sent)
+    .sort((a, b) => a.remind_at - b.remind_at)
+})
+
+const pastReminders = computed(() => {
+  return [...props.reminderState.reminders.value]
+    .filter(r => r.sent)
+    .sort((a, b) => b.remind_at - a.remind_at)
 })
 
 const now = Math.floor(Date.now() / 1000)
+const showPast = ref(false)
 
 // Edit state
 const editingId = ref(null)
@@ -78,6 +87,12 @@ async function handleDelete(id) {
   if (ok) toast.success(t('reminderDeleted'))
 }
 
+async function handleClearPast() {
+  if (!confirm(t('confirmDelete'))) return
+  const ok = await props.reminderState.clearPast()
+  if (ok) toast.success(t('pastCleared'))
+}
+
 async function handleDeleteRecurring(id) {
   if (!confirm(t('confirmDelete'))) return
   const ok = await props.reminderState.removeRecurringEvent(id)
@@ -102,6 +117,12 @@ async function handleDeleteRecurring(id) {
       </div>
 
       <div v-else class="overflow-y-auto flex-1 space-y-4">
+        <!-- Empty state -->
+        <div v-if="upcomingReminders.length === 0 && pastReminders.length === 0 && reminderState.recurringEvents.value.length === 0" class="text-center py-8 text-slate-400">
+          <div class="text-4xl mb-3">📭</div>
+          <p>{{ t('noReminders') }}</p>
+        </div>
+
         <!-- Recurring Events Section -->
         <div v-if="reminderState.recurringEvents.value.length > 0">
           <h3 class="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-2 flex items-center gap-1.5">
@@ -139,95 +160,90 @@ async function handleDeleteRecurring(id) {
           </div>
         </div>
 
-        <!-- One-time Reminders Section -->
-        <div v-if="sortedReminders.length === 0 && reminderState.recurringEvents.value.length === 0" class="text-center py-8 text-slate-400">
-          <div class="text-4xl mb-3">📭</div>
-          <p>{{ t('noReminders') }}</p>
-        </div>
-
-        <div v-if="sortedReminders.length > 0" class="space-y-2">
-          <div
-            v-for="r in sortedReminders"
-            :key="r.id"
-            class="p-3 rounded-lg border border-slate-200 dark:border-slate-700"
-            :class="{ 'opacity-60': r.sent }"
-          >
-            <!-- Edit form -->
-            <div v-if="editingId === r.id" class="space-y-2">
-              <input
-                v-model="editTitle"
-                type="text"
-                maxlength="200"
-                class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                :placeholder="t('title')"
-              />
-              <textarea
-                v-model="editDescription"
-                rows="2"
-                class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm resize-none"
-                :placeholder="t('description')"
-              />
-              <input
-                v-model="editTime"
-                type="time"
-                class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
-                dir="ltr"
-              />
-              <div class="flex gap-2">
-                <button
-                  @click="cancelEdit"
-                  class="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-700"
-                >
-                  {{ t('cancel') }}
-                </button>
-                <button
-                  @click="saveEdit(r)"
-                  :disabled="!editTitle.trim()"
-                  class="flex-1 px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50 text-xs font-medium"
-                >
-                  {{ t('save') }}
-                </button>
+        <!-- Upcoming Reminders Section -->
+        <div v-if="upcomingReminders.length > 0">
+          <h3 class="text-sm font-semibold text-teal-600 dark:text-teal-400 mb-2 flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {{ t('upcomingReminders') }}
+          </h3>
+          <div class="space-y-2">
+            <div
+              v-for="r in upcomingReminders"
+              :key="r.id"
+              class="p-3 rounded-lg border border-slate-200 dark:border-slate-700"
+            >
+              <!-- Edit form -->
+              <div v-if="editingId === r.id" class="space-y-2">
+                <input v-model="editTitle" type="text" maxlength="200" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" :placeholder="t('title')" />
+                <textarea v-model="editDescription" rows="2" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm resize-none" :placeholder="t('description')" />
+                <input v-model="editTime" type="time" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm" dir="ltr" />
+                <div class="flex gap-2">
+                  <button @click="cancelEdit" class="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-xs font-medium hover:bg-slate-100 dark:hover:bg-slate-700">{{ t('cancel') }}</button>
+                  <button @click="saveEdit(r)" :disabled="!editTitle.trim()" class="flex-1 px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50 text-xs font-medium">{{ t('save') }}</button>
+                </div>
+              </div>
+              <!-- Display mode -->
+              <div v-else class="flex items-start justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <p class="font-medium text-sm truncate">{{ r.title }}</p>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400">{{ t('pending') }}</span>
+                  </div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ r.hijri_date }}</p>
+                  <p class="text-xs text-slate-400 dark:text-slate-500">{{ formatDate(r.remind_at) }}</p>
+                </div>
+                <div class="flex gap-1 shrink-0">
+                  <button @click="startEdit(r)" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-600" :title="t('edit')">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                  </button>
+                  <button @click="handleDelete(r.id)" class="p-1.5 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600" :title="t('delete')">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <!-- Display mode -->
-            <div v-else class="flex items-start justify-between gap-3">
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                  <p class="font-medium text-sm truncate">{{ r.title }}</p>
-                  <span
-                    class="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0"
-                    :class="{
-                      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400': r.sent,
-                      'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400': !r.sent && r.remind_at > now,
-                      'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400': !r.sent && r.remind_at <= now,
-                    }"
-                  >
-                    {{ r.sent ? t('sent') : t('pending') }}
-                  </span>
+        <!-- Past Reminders Section (collapsible) -->
+        <div v-if="pastReminders.length > 0">
+          <button
+            @click="showPast = !showPast"
+            class="w-full text-sm font-semibold text-slate-400 dark:text-slate-500 mb-2 flex items-center justify-between"
+          >
+            <span class="flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {{ t('pastReminders') }} ({{ pastReminders.length }})
+            </span>
+            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': showPast }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          <div v-if="showPast" class="space-y-2">
+            <button
+              @click="handleClearPast"
+              class="text-xs text-red-400 hover:text-red-600 font-medium mb-1"
+            >
+              {{ t('clearPast') }}
+            </button>
+            <div
+              v-for="r in pastReminders"
+              :key="r.id"
+              class="p-3 rounded-lg border border-slate-200 dark:border-slate-700 opacity-60"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <p class="font-medium text-sm truncate">{{ r.title }}</p>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400">{{ t('sent') }}</span>
+                  </div>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">{{ r.hijri_date }}</p>
+                  <p class="text-xs text-slate-400 dark:text-slate-500">{{ formatDate(r.remind_at) }}</p>
                 </div>
-                <p class="text-xs text-slate-500 dark:text-slate-400">{{ r.hijri_date }}</p>
-                <p class="text-xs text-slate-400 dark:text-slate-500">{{ formatDate(r.remind_at) }}</p>
-              </div>
-              <div v-if="!r.sent" class="flex gap-1 shrink-0">
-                <button
-                  @click="startEdit(r)"
-                  class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-600"
-                  :title="t('edit')"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button
-                  @click="handleDelete(r.id)"
-                  class="p-1.5 rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600"
-                  :title="t('delete')"
-                >
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
               </div>
             </div>
           </div>

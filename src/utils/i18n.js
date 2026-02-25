@@ -71,6 +71,10 @@ const translations = {
     tapToRemind: 'tap to set reminder',
     edit: 'Edit',
     reminderUpdated: 'Reminder updated!',
+    upcomingReminders: 'Upcoming',
+    pastReminders: 'Past',
+    clearPast: 'Clear past',
+    pastCleared: 'Past reminders cleared',
   },
   ar: {
     appName: 'تقويم هلال',
@@ -121,5 +125,9 @@ const translations = {
     tapToRemind: 'انقر لإنشاء تذكير',
     edit: 'تعديل',
     reminderUpdated: 'تم تحديث التذكير!',
+    upcomingReminders: 'القادمة',
+    pastReminders: 'السابقة',
+    clearPast: 'مسح السابقة',
+    pastCleared: 'تم مسح التذكيرات السابقة',
   }
 }

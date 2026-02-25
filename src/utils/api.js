@@ -78,6 +78,10 @@ export async function deleteReminder(id) {
   return request(`/reminders/${id}`, { method: 'DELETE' })
 }
 
+export async function clearPastReminders() {
+  return request('/reminders/past', { method: 'DELETE' })
+}
+
 // Recurring Events
 export async function getRecurringEvents() {
   return request('/recurring')

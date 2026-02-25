@@ -101,6 +101,15 @@ reminders.put('/:id', async (c) => {
   return c.json({ reminder: updated })
 })
 
+// DELETE /api/reminders/past — clear all sent reminders
+reminders.delete('/past', (c) => {
+  const email = c.get('email')
+  const result = db.prepare(
+    'UPDATE reminders SET cancelled = 1 WHERE email = ? AND sent = 1 AND cancelled = 0'
+  ).run(email)
+  return c.json({ message: `Cleared ${result.changes} past reminders`, count: result.changes })
+})
+
 // DELETE /api/reminders/:id
 reminders.delete('/:id', (c) => {
   const email = c.get('email')

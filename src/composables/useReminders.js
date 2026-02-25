@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import {
-  getReminders, createReminder, updateReminder, deleteReminder,
+  getReminders, createReminder, updateReminder, deleteReminder, clearPastReminders,
   getRecurringEvents, createRecurringEvent, deleteRecurringEvent
 } from '../utils/api.js'
 
@@ -51,6 +51,18 @@ export function useReminders() {
       return false
     } finally {
       loading.value = false
+    }
+  }
+
+  async function clearPast() {
+    error.value = ''
+    try {
+      await clearPastReminders()
+      reminders.value = reminders.value.filter(r => !r.sent)
+      return true
+    } catch (err) {
+      error.value = err.error || 'Failed to clear past reminders'
+      return false
     }
   }
 
@@ -105,7 +117,7 @@ export function useReminders() {
 
   return {
     reminders, recurringEvents, loading, error,
-    fetchReminders, addReminder, editReminder, removeReminder,
+    fetchReminders, addReminder, editReminder, removeReminder, clearPast,
     fetchRecurringEvents, addRecurringEvent, removeRecurringEvent
   }
 }
